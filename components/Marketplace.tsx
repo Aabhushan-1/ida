@@ -223,7 +223,7 @@ export const Marketplace: React.FC<MarketplaceProps> = ({ user }) => {
                     <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
                 </div>
 
-                <div className="flex gap-2 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 hide-scrollbar">
+                <div className="flex gap-2 w-full lg:w-auto flex-wrap">
                     {/* Sort Button & Popover */}
                     <div className="relative" ref={sortRef}>
                         <button
