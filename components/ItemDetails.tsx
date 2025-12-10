@@ -181,7 +181,7 @@ export const ItemDetails: React.FC<ItemDetailsProps> = ({ ideaId, onBack }) => {
                         <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/5 rounded-2xl p-8 shadow-lg">
                             <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                                 <ShieldCheckIcon className="w-5 h-5 text-green-500" />
-                                Minimum Viable Product
+                                Available MVP/Prototype
                             </h2>
                             <div className="flex items-center gap-3 mb-4">
                                 <CheckBadgeIcon className="w-5 h-5 text-green-500" />
