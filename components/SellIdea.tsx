@@ -10,6 +10,7 @@ import { supabase } from '../services/supabase';
 import type { DemandLevel } from '../types/database';
 import { CATEGORIES } from '../constants/categories';
 import { suggestCategory } from '../services/analyzeBusinessModel';
+import { CategoryDropdown } from './CategoryDropdown';
 
 interface SellIdeaProps {
     onBack: () => void;
@@ -426,17 +427,11 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
 
                         {categoryMode === 'Manual' ? (
                             <div className="relative">
-                                <select
+                                <CategoryDropdown
                                     value={category}
-                                    onChange={(e) => setCategory(e.target.value)}
-                                    className="w-full bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-green-500 appearance-none cursor-pointer hover:border-zinc-600 transition-colors"
-                                >
-                                    <option value="" disabled>Select a category</option>
-                                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                                </select>
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-                                </div>
+                                    onChange={setCategory}
+                                    placeholder="Select a category"
+                                />
                             </div>
                         ) : (
                             <div className="relative">

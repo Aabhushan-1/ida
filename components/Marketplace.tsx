@@ -8,6 +8,7 @@ import { StarIcon } from '@heroicons/react/24/solid';
 import { getMarketplaceItems, MarketplaceFilters } from '../services/database';
 import type { MarketplaceView } from '../types/database';
 import { CATEGORIES } from '../constants/categories';
+import { CategoryDropdown } from './CategoryDropdown';
 
 // MiniRadial Component
 const MiniRadial: React.FC<{ value: number }> = ({ value }) => {
@@ -212,15 +213,11 @@ export const Marketplace: React.FC<MarketplaceProps> = ({ user }) => {
 
                 {/* Category Dropdown (Beside Search) */}
                 <div className="relative w-full lg:w-48 shrink-0">
-                    <select
+                    <CategoryDropdown
                         value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="w-full appearance-none bg-zinc-900 border border-zinc-700 rounded-lg py-2.5 pl-4 pr-10 text-zinc-300 focus:outline-none focus:border-green-500/50 cursor-pointer hover:border-zinc-500 transition-colors"
-                    >
-                        <option value="">All Categories</option>
-                        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                    <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+                        onChange={setSelectedCategory}
+                        placeholder="All Categories"
+                    />
                 </div>
 
                 <div className="flex gap-2 w-full lg:w-auto flex-wrap">
