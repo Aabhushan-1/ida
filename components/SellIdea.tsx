@@ -80,7 +80,7 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
 
     const handleAdditionalDocsUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            const newFiles = Array.from(e.target.files);
+            const newFiles: File[] = Array.from(e.target.files);
             const validFiles = newFiles.filter(f => f.type === 'application/pdf');
 
             if (validFiles.length !== newFiles.length) {

@@ -4,7 +4,7 @@
 */
 
 // CONSTANTS
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 const SITE_URL = window.location.origin;
 const SITE_NAME = "ida-marketplace";
 const MODEL_NAME = "google/gemini-2.0-flash-exp:free";

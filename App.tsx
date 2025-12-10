@@ -5,9 +5,10 @@
 import React, { useState, useEffect } from 'react';
 import { Hero } from './components/Hero';
 import { InputArea } from './components/InputArea';
-import { LivePreview } from './components/LivePreview';
+// import { LivePreview } from './components/LivePreview'; // TODO: Recreate this component
 import { CreationHistory, Creation } from './components/CreationHistory';
-import { TrendingGrid, MarketplaceItem } from './components/TrendingGrid';
+import { TrendingGrid } from './components/TrendingGrid';
+import type { MarketplaceView } from './types/database';
 import { NavBar } from './components/NavBar';
 import { Marketplace } from './components/Marketplace';
 import { DigitalSolutions } from './components/DigitalSolutions';
@@ -27,7 +28,7 @@ const App: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [history, setHistory] = useState<Creation[]>([]);
   const [currentPage, setCurrentPage] = useState<Page>('home');
-  const [selectedItem, setSelectedItem] = useState<MarketplaceItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<MarketplaceView | null>(null);
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -153,7 +154,7 @@ const App: React.FC = () => {
     setActiveCreation(creation);
   };
 
-  const handleMarketplaceItemClick = (item: MarketplaceItem) => {
+  const handleMarketplaceItemClick = (item: MarketplaceView) => {
     setSelectedItem(item);
     setCurrentPage('item-details');
   };
@@ -274,12 +275,12 @@ const App: React.FC = () => {
       </div>
 
       {/* Live Preview - Always mounted for smooth transition */}
-      <LivePreview
+      {/* <LivePreview
         creation={activeCreation}
         isLoading={isGenerating}
         isFocused={isFocused}
         onReset={handleReset}
-      />
+      /> */}
     </div>
   );
 };

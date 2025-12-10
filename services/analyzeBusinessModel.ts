@@ -7,13 +7,13 @@
  */
 
 // CONSTANTS (using OpenRouter as requested)
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY; // Must be in .env.local
-const SITE_URL = "http://localhost:3000"; // Or your actual site URL
+const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY; // Must be in .env.local
+const SITE_URL = typeof window !== 'undefined' ? window.location.origin : "http://localhost:3000";
 const SITE_NAME = "ida-marketplace";
 const MODEL_NAME = "google/gemini-2.0-flash-exp:free"; // Or whatever model key you prefer
 
 if (!OPENROUTER_API_KEY) {
-    console.warn("Warning: OPENROUTER_API_KEY is not set in environment variables.");
+    console.warn("Warning: VITE_OPENROUTER_API_KEY is not set in environment variables.");
 }
 
 // --- System prompts (strict, teacher-like) ---
