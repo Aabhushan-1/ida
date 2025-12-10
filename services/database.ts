@@ -455,20 +455,49 @@ export async function deleteDocument(filePath: string): Promise<{ error: any }> 
 // ============================================
 
 export async function getUserListings(userId: string): Promise<{ data: MarketplaceView[] | null; error: any }> {
-    // 1. Get username
-    const { data: userInfo, error: userError } = await getUserInfoById(userId);
-    if (userError || !userInfo) {
-        return { data: null, error: userError || new Error('User not found') };
-    }
-
-    // 2. Query marketplace view by username
-    const { data, error } = await supabase
-        .from('marketplace')
-        .select('*')
-        .eq('username', userInfo.username)
+    // Query idea_listing table directly to ensure we get all user items
+    // We join with ai_scoring to get the score
+    const { data: listings, error } = await supabase
+        .from('idea_listing')
+        .select(`
+            *,
+            ai_scoring (
+                overall_score,
+                uniqueness,
+                viability,
+                profitability
+            )
+        `)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-    return { data, error };
+    if (error) {
+        return { data: null, error };
+    }
+
+    // Map to MarketplaceView shape
+    const marketplaceItems: MarketplaceView[] = (listings || []).map((item: any) => {
+        const scoreData = item.ai_scoring?.[0] || item.ai_scoring; // Handle array or object return
+        return {
+            marketplace_id: item.idea_id, // Use idea_id as fallback
+            idea_id: item.idea_id,
+            ai_score_id: scoreData?.ai_score_id || 'pending',
+            title: item.title,
+            description: item.description,
+            uniqueness: scoreData?.uniqueness || 0,
+            viability: scoreData?.viability || 0,
+            profitability: scoreData?.profitability || 'N/A',
+            category: item.category,
+            mvp: item.mvp,
+            document_url: item.document_url,
+            price: item.price,
+            username: '', // Not needed for dashboard view usually, or fetch if needed
+            created_at: item.created_at,
+            overall_score: scoreData?.overall_score || 0
+        };
+    });
+
+    return { data: marketplaceItems, error: null };
 }
 
 export async function deleteListing(ideaId: string): Promise<{ error: any }> {
