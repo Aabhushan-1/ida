@@ -2,11 +2,12 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
-import React, { useState, useEffect } from 'react';
-import { MagnifyingGlassIcon, FunnelIcon, AdjustmentsHorizontalIcon, PlusIcon } from '@heroicons/react/24/outline';
+import React, { useState, useEffect, useRef } from 'react';
+import { MagnifyingGlassIcon, FunnelIcon, AdjustmentsHorizontalIcon, PlusIcon, XMarkIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { StarIcon } from '@heroicons/react/24/solid';
-import { getMarketplaceItems, searchMarketplaceItems } from '../services/database';
+import { getMarketplaceItems, MarketplaceFilters } from '../services/database';
 import type { MarketplaceView } from '../types/database';
+import { CATEGORIES } from '../constants/categories';
 
 // MiniRadial Component
 const MiniRadial: React.FC<{ value: number }> = ({ value }) => {
@@ -57,19 +58,73 @@ export const Marketplace: React.FC<MarketplaceProps> = ({ user }) => {
     const [items, setItems] = useState<MarketplaceView[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [isSearching, setIsSearching] = useState(false);
 
-    // Fetch marketplace items on mount
+    // Filter State
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState<string>('');
+    const [priceRange, setPriceRange] = useState<number>(10000); // Max price
+    const [hasMvp, setHasMvp] = useState(false);
+    const [hasDocs, setHasDocs] = useState(false);
+    const [sortOption, setSortOption] = useState<{ field: 'price' | 'overall_score', direction: 'asc' | 'desc' } | null>(null);
+
+    // UI State
+    const [showFilterMenu, setShowFilterMenu] = useState(false);
+    const [showSortMenu, setShowSortMenu] = useState(false);
+
+    const filterRef = useRef<HTMLDivElement>(null);
+    const sortRef = useRef<HTMLDivElement>(null);
+
+    // Close menus when clicking outside
     useEffect(() => {
-        fetchItems();
+        function handleClickOutside(event: MouseEvent) {
+            if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+                setShowFilterMenu(false);
+            }
+            if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
+                setShowSortMenu(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    // Check for "Space Bar" search trigger
+    useEffect(() => {
+        if (searchTerm.endsWith(' ')) {
+            fetchItems();
+        }
+    }, [searchTerm]);
+
+    // Fetch items when any filter changes (debounced search handled by space/enter, but others instant?)
+    // User requirement: "sort button should work... filter should work..."
+    // Usually these trigger fetch immediately.
+    useEffect(() => {
+        fetchItems();
+    }, [selectedCategory, sortOption, hasMvp, hasDocs]);
+    // Intentionally NOT including searchTerm here to respect specific trigger requirement or debounce, 
+    // but typically search should be live. 
+    // User said "with each space bar...". Use effect above handles that.
+    // Also trigger when slider changes? Slider drag heavy. I'll trigger on change (mouse up usually) or debounce.
+    // HTML range input onChange fires continuously. onMouseUp is better.
+    // I'll add a separate effect or handler for price.
+
+    // Fetch items logic
     const fetchItems = async () => {
         setLoading(true);
         setError(null);
         try {
-            const { data, error: fetchError } = await getMarketplaceItems(100);
+            const filters: MarketplaceFilters = {
+                limit: 100,
+                searchTerm: searchTerm.trim(), // Send trimmed
+                category: selectedCategory || undefined,
+                maxPrice: priceRange,
+                hasMvp: hasMvp,
+                hasDocs: hasDocs,
+                sort: sortOption || undefined
+            };
+
+            const { data, error: fetchError } = await getMarketplaceItems(filters);
+
             if (fetchError) throw fetchError;
             setItems(data || []);
         } catch (err: any) {
@@ -80,24 +135,22 @@ export const Marketplace: React.FC<MarketplaceProps> = ({ user }) => {
         }
     };
 
-    const handleSearch = async () => {
-        if (!searchTerm.trim()) {
-            fetchItems();
-            return;
-        }
+    const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+        // Space bar trigger handled by useEffect
+    };
 
-        setIsSearching(true);
-        setError(null);
-        try {
-            const { data, error: searchError } = await searchMarketplaceItems(searchTerm, 100);
-            if (searchError) throw searchError;
-            setItems(data || []);
-        } catch (err: any) {
-            setError(err.message || 'Search failed');
-            console.error('Search error:', err);
-        } finally {
-            setIsSearching(false);
-        }
+    const handleSearchSubmit = () => {
+        fetchItems();
+    };
+
+    const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setPriceRange(parseInt(e.target.value));
+    };
+
+    // Trigger fetch when price dragging stops
+    const handlePriceCommit = () => {
+        fetchItems();
     };
 
     const handleItemClick = (item: MarketplaceView) => {
@@ -142,34 +195,157 @@ export const Marketplace: React.FC<MarketplaceProps> = ({ user }) => {
             </div>
 
             {/* Toolbar */}
-            <div className="sticky top-20 z-20 flex flex-col md:flex-row gap-4 mb-8 bg-zinc-950/80 backdrop-blur-xl p-4 -mx-4 md:mx-0 rounded-xl border border-white/5 shadow-2xl">
-                <div className="relative flex-1">
+            <div className="sticky top-20 z-20 flex flex-col lg:flex-row gap-4 mb-8 bg-zinc-950/80 backdrop-blur-xl p-4 -mx-4 md:mx-0 rounded-xl border border-white/5 shadow-2xl items-center">
+
+                {/* Search Bar */}
+                <div className="relative flex-1 w-full">
                     <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
                     <input
                         type="text"
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                        onChange={handleSearchInput}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
                         placeholder="Search assets, industries, or keywords..."
                         className="w-full bg-zinc-900/50 border border-zinc-700 rounded-lg py-2.5 pl-10 pr-4 text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-green-500/50 transition-colors"
                     />
                 </div>
-                <div className="flex gap-2">
-                    <button
-                        onClick={handleSearch}
-                        disabled={isSearching}
-                        className="px-4 py-2 bg-green-500 text-black rounded-lg hover:bg-green-400 transition-colors text-sm font-medium disabled:opacity-50"
+
+                {/* Category Dropdown (Beside Search) */}
+                <div className="relative w-full lg:w-48 shrink-0">
+                    <select
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        className="w-full appearance-none bg-zinc-900 border border-zinc-700 rounded-lg py-2.5 pl-4 pr-10 text-zinc-300 focus:outline-none focus:border-green-500/50 cursor-pointer hover:border-zinc-500 transition-colors"
                     >
-                        {isSearching ? 'Searching...' : 'Search'}
-                    </button>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-300 hover:text-white hover:border-zinc-500 transition-colors text-sm font-medium">
-                        <FunnelIcon className="w-4 h-4" />
-                        Filter
-                    </button>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-300 hover:text-white hover:border-zinc-500 transition-colors text-sm font-medium">
-                        <AdjustmentsHorizontalIcon className="w-4 h-4" />
-                        Sort
-                    </button>
+                        <option value="">All Categories</option>
+                        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+                </div>
+
+                <div className="flex gap-2 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 hide-scrollbar">
+                    {/* Sort Button & Popover */}
+                    <div className="relative" ref={sortRef}>
+                        <button
+                            onClick={() => setShowSortMenu(!showSortMenu)}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-colors whitespace-nowrap ${showSortMenu || sortOption ? 'bg-green-500/10 border-green-500 text-green-400' : 'bg-zinc-900 border-zinc-700 text-zinc-300 hover:text-white hover:border-zinc-500'}`}
+                        >
+                            <AdjustmentsHorizontalIcon className="w-4 h-4" />
+                            Sort
+                        </button>
+
+                        {showSortMenu && (
+                            <div className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-zinc-700 rounded-xl shadow-xl p-4 z-30 animate-in fade-in zoom-in-95 duration-200">
+                                <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Sort By</h3>
+                                <div className="space-y-2">
+                                    {[
+                                        { label: 'Price: Low to High', val: { field: 'price', direction: 'asc' } },
+                                        { label: 'Price: High to Low', val: { field: 'price', direction: 'desc' } },
+                                        { label: 'Rating: Low to High', val: { field: 'overall_score', direction: 'asc' } },
+                                        { label: 'Rating: High to Low', val: { field: 'overall_score', direction: 'desc' } },
+                                    ].map((opt, idx) => (
+                                        <label key={idx} className="flex items-center gap-3 p-2 rounded hover:bg-zinc-800 cursor-pointer group">
+                                            <input
+                                                type="checkbox"
+                                                checked={sortOption?.field === opt.val.field && sortOption?.direction === opt.val.direction}
+                                                onChange={() => {
+                                                    setSortOption(opt.val as any);
+                                                    setShowSortMenu(false); // Close on select
+                                                }}
+                                                className="w-4 h-4 rounded border-zinc-600 bg-zinc-800 text-green-500 focus:ring-green-500 focus:ring-offset-0"
+                                            />
+                                            <span className="text-sm text-zinc-300 group-hover:text-white">{opt.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                                {sortOption && (
+                                    <button
+                                        onClick={() => setSortOption(null)}
+                                        className="mt-3 w-full text-xs text-zinc-500 hover:text-zinc-300 py-1"
+                                    >
+                                        Clear Sort
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Filter Button & Popover */}
+                    <div className="relative" ref={filterRef}>
+                        <button
+                            onClick={() => setShowFilterMenu(!showFilterMenu)}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-colors whitespace-nowrap ${showFilterMenu || hasMvp || hasDocs || priceRange < 10000 ? 'bg-green-500/10 border-green-500 text-green-400' : 'bg-zinc-900 border-zinc-700 text-zinc-300 hover:text-white hover:border-zinc-500'}`}
+                        >
+                            <FunnelIcon className="w-4 h-4" />
+                            Filter
+                        </button>
+
+                        {showFilterMenu && (
+                            <div className="absolute right-0 top-full mt-2 w-72 bg-zinc-900 border border-zinc-700 rounded-xl shadow-xl p-5 z-30 animate-in fade-in zoom-in-95 duration-200">
+                                <div className="space-y-6">
+                                    {/* Features Checkboxes */}
+                                    <div>
+                                        <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Features</h3>
+                                        <div className="space-y-3">
+                                            <label className="flex items-center gap-3 cursor-pointer group">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={hasMvp}
+                                                    onChange={(e) => setHasMvp(e.target.checked)}
+                                                    className="w-4 h-4 rounded border-zinc-600 bg-zinc-800 text-green-500 focus:ring-green-500"
+                                                />
+                                                <span className="text-sm text-zinc-300 group-hover:text-white">MVP Available</span>
+                                            </label>
+                                            <label className="flex items-center gap-3 cursor-pointer group">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={hasDocs}
+                                                    onChange={(e) => setHasDocs(e.target.checked)}
+                                                    className="w-4 h-4 rounded border-zinc-600 bg-zinc-800 text-green-500 focus:ring-green-500"
+                                                />
+                                                <span className="text-sm text-zinc-300 group-hover:text-white">Additional Documents</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {/* Price Range Slider */}
+                                    <div>
+                                        <div className="flex justify-between items-baseline mb-2">
+                                            <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Max Price</h3>
+                                            <span className="text-sm font-mono text-green-400 font-medium">${priceRange.toLocaleString()}</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="10000"
+                                            step="100"
+                                            value={priceRange}
+                                            onChange={handlePriceChange}
+                                            onMouseUp={handlePriceCommit}
+                                            onTouchEnd={handlePriceCommit}
+                                            className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-green-500 hover:accent-green-400"
+                                        />
+                                        <div className="flex justify-between mt-1 text-[10px] text-zinc-600 font-mono">
+                                            <span>$0</span>
+                                            <span>$10,000+</span>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={() => {
+                                            setHasMvp(false);
+                                            setHasDocs(false);
+                                            setPriceRange(10000);
+                                            // setShowFilterMenu(false);
+                                        }}
+                                        className="w-full py-2 text-xs text-zinc-500 hover:text-zinc-300 border border-zinc-800 rounded hover:bg-zinc-800 transition-colors"
+                                    >
+                                        Reset Filters
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -177,6 +353,7 @@ export const Marketplace: React.FC<MarketplaceProps> = ({ user }) => {
             {error && (
                 <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6">
                     <p className="text-red-500 text-sm">{error}</p>
+                    <button onClick={() => fetchItems()} className="text-xs text-red-400 mt-2 hover:underline">Try Again</button>
                 </div>
             )}
 
@@ -192,13 +369,22 @@ export const Marketplace: React.FC<MarketplaceProps> = ({ user }) => {
 
             {/* Empty State */}
             {!loading && items.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-20">
-                    <p className="text-zinc-400 text-lg mb-4">No ideas found</p>
+                <div className="flex flex-col items-center justify-center py-20 bg-zinc-900/30 rounded-2xl border border-white/5">
+                    <MagnifyingGlassIcon className="w-12 h-12 text-zinc-600 mb-4" />
+                    <p className="text-zinc-400 text-lg mb-2">No matching results found</p>
+                    <p className="text-zinc-500 text-sm mb-6">Try adjusting your filters or search terms.</p>
                     <button
-                        onClick={handleAddListing}
+                        onClick={() => {
+                            setSearchTerm('');
+                            setSelectedCategory('');
+                            setHasMvp(false);
+                            setHasDocs(false);
+                            setPriceRange(10000);
+                            setSortOption(null);
+                        }}
                         className="text-green-400 hover:text-green-300 font-medium"
                     >
-                        Be the first to list an idea →
+                        Clear all filters
                     </button>
                 </div>
             )}
@@ -210,7 +396,7 @@ export const Marketplace: React.FC<MarketplaceProps> = ({ user }) => {
                         <div
                             key={item.idea_id}
                             onClick={() => handleItemClick(item)}
-                            className="group relative bg-zinc-900/40 border border-zinc-800 hover:border-zinc-600 p-5 rounded-lg transition-all hover:-translate-y-1 cursor-pointer overflow-hidden active:scale-95"
+                            className="group relative bg-zinc-900/40 border border-zinc-800 hover:border-zinc-600 p-5 rounded-lg transition-all hover:-translate-y-1 cursor-pointer overflow-hidden active:scale-95 flex flex-col h-full"
                         >
                             <div className={`absolute top-0 left-0 w-full h-0.5 ${getCategoryColor(index)} opacity-50`}></div>
 
@@ -229,12 +415,12 @@ export const Marketplace: React.FC<MarketplaceProps> = ({ user }) => {
                             <h4 className="text-white font-bold text-lg leading-tight mb-2 group-hover:text-green-400 transition-colors truncate">
                                 {item.title}
                             </h4>
-                            <p className="text-zinc-400 text-sm line-clamp-2 mb-4 h-10">
+                            <p className="text-zinc-400 text-sm line-clamp-2 mb-4 min-h-[2.5rem]">
                                 {item.description}
                             </p>
 
                             {/* 3 Circular Indicators */}
-                            <div className="flex flex-nowrap gap-4 justify-center mb-6">
+                            <div className="flex flex-nowrap gap-4 justify-center mb-6 mt-auto">
                                 <MiniRadial value={Math.round(item.uniqueness || 0)} />
                                 <MiniRadial value={Math.round(item.viability || 0)} />
                                 <MiniRadial value={Math.round(item.overall_score * 10)} />
@@ -248,17 +434,14 @@ export const Marketplace: React.FC<MarketplaceProps> = ({ user }) => {
                                         ${item.price.toLocaleString()}
                                     </div>
                                 </div>
+                                {item.mvp && (
+                                    <span className="px-2 py-1 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase rounded border border-green-500/20">
+                                        MVP
+                                    </span>
+                                )}
                             </div>
                         </div>
                     ))}
-                </div>
-            )}
-
-            {!loading && items.length > 0 && (
-                <div className="mt-12 text-center">
-                    <button className="text-zinc-500 hover:text-zinc-300 text-sm font-mono border-b border-zinc-800 pb-1">
-                        Showing {items.length} ideas
-                    </button>
                 </div>
             )}
         </div>

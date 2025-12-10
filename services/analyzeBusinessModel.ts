@@ -170,7 +170,6 @@ export async function analyzeBusinessPipeline(fileBase64: string, mimeType: stri
         // Step B: score using strict rubric
         const scoringOutput = await scoreStructuredData(structured);
 
-        // Combined result
         return {
             structured,
             scoring: scoringOutput
@@ -179,5 +178,37 @@ export async function analyzeBusinessPipeline(fileBase64: string, mimeType: stri
         console.error("Pipeline Error:", error);
         // You might want to return a fallback or rethrow depending on UI requirements
         throw error;
+    }
+}
+
+import { CATEGORIES } from '../constants/categories';
+
+export async function suggestCategory(title: string, description: string): Promise<string> {
+    const prompt = `You are an expert taxonomist.
+    Given the following business Idea Title and Description, select the ONE most appropriate category from the exact list provided below.
+    Do not output anything else. Just the category name exactly as written.
+
+    List of Categories:
+    ${CATEGORIES.join('\n')}
+
+    Title: ${title}
+    Description: ${description}
+    `;
+
+    try {
+        const content = await callOpenRouter(
+            "You are a strict categorization assistant that outputs ONLY the exact category name.",
+            [{ type: "text", text: prompt }]
+        );
+        let cat = content.trim().replace(/^['"]|['"]$/g, '');
+
+        // Basic fuzzy match if exact match fails (e.g. extra whitespace or period)
+        const exactMatch = CATEGORIES.find(c => c.toLowerCase() === cat.toLowerCase().replace(/\.$/, ''));
+        if (exactMatch) return exactMatch;
+
+        return 'Technology & Software'; // Fallback
+    } catch (error) {
+        console.error("Category suggestion failed:", error);
+        return 'Technology & Software';
     }
 }

@@ -29,6 +29,7 @@ export interface IdeaListing {
     digital_mvp?: string | null; // URL or zip file path
     physical_mvp_image?: string | null;
     physical_mvp_video?: string | null;
+    category?: string | null; // Added category
     price: number;
     created_at?: string;
     updated_at?: string;
@@ -59,6 +60,9 @@ export interface MarketplaceView {
     uniqueness: number;
     viability: number;
     profitability: string;
+    category?: string | null; // Added category
+    mvp: boolean;
+    document_url: string;
     price: number;
     username: string;
     created_at: string;
@@ -89,6 +93,7 @@ export interface IdeaDetailView {
     additional_doc_1?: string | null;
     additional_doc_2?: string | null;
     additional_doc_3?: string | null;
+    category?: string | null; // Added category
     created_at: string;
     updated_at: string;
 }

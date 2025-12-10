@@ -8,6 +8,8 @@ import { analyzeAssetScores } from '../services/gemini';
 import { createIdeaListing, createAIScoring, uploadDocument } from '../services/database';
 import { supabase } from '../services/supabase';
 import type { DemandLevel } from '../types/database';
+import { CATEGORIES } from '../constants/categories';
+import { suggestCategory } from '../services/analyzeBusinessModel';
 
 interface SellIdeaProps {
     onBack: () => void;
@@ -35,6 +37,9 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [scores, setScores] = useState<AIScores | null>(null);
     const [price, setPrice] = useState('');
+    const [category, setCategory] = useState<string>('');
+    const [categoryMode, setCategoryMode] = useState<'Manual' | 'AI'>('Manual');
+    const [isSuggestingCategory, setIsSuggestingCategory] = useState(false);
 
     // MVP State
     const [hasMVP, setHasMVP] = useState<boolean | null>(null);
@@ -135,6 +140,26 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
         setMvpMediaFiles(mvpMediaFiles.filter((_, i) => i !== index));
     };
 
+    const handleCategoryModeChange = async (mode: 'Manual' | 'AI') => {
+        setCategoryMode(mode);
+        if (mode === 'AI') {
+            if (!title || !description) {
+                alert('Please enter title and description first.');
+                setCategoryMode('Manual');
+                return;
+            }
+            setIsSuggestingCategory(true);
+            try {
+                const cat = await suggestCategory(title, description);
+                setCategory(cat);
+            } catch (e) {
+                console.error(e);
+            } finally {
+                setIsSuggestingCategory(false);
+            }
+        }
+    };
+
     // --- Pricing Logic ---
     const maxPriceLimit = useMemo(() => {
         let limit = 500;
@@ -170,6 +195,7 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
     const formValid = useMemo(() => {
         return title.trim().length > 0 &&
             description.trim().length > 0 &&
+            category.length > 0 &&
             mainDocument !== null &&
             isPriceValid;
     }, [title, description, mainDocument, isPriceValid]);
@@ -241,7 +267,9 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                 mvp_type: mvpType,
                 digital_mvp: digitalMvpUrl,
                 physical_mvp_image: physicalMvpImage,
+
                 physical_mvp_video: physicalMvpVideo,
+                category: category,
                 price: parseFloat(price)
             });
 
@@ -373,6 +401,59 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                                 placeholder="Describe the problem, solution, and business model..."
                             />
                         </div>
+                    </div>
+
+                    {/* Category Selection */}
+                    <div>
+                        <label className="block text-sm font-medium text-zinc-300 mb-2">
+                            Category <span className="text-red-500">*</span>
+                        </label>
+                        <div className="flex bg-zinc-950/50 border border-zinc-700 rounded-lg p-1 gap-1 mb-3 max-w-sm">
+                            <button
+                                onClick={() => handleCategoryModeChange('Manual')}
+                                className={`flex-1 py-1.5 text-sm font-medium rounded transition-all ${categoryMode === 'Manual' ? 'bg-zinc-800 text-white shadow border border-zinc-600' : 'text-zinc-400 hover:text-white'}`}
+                            >
+                                Manual Select
+                            </button>
+                            <button
+                                onClick={() => handleCategoryModeChange('AI')}
+                                className={`flex-1 py-1.5 text-sm font-medium rounded flex items-center justify-center gap-2 transition-all ${categoryMode === 'AI' ? 'bg-green-500/10 text-green-400 shadow border border-green-500/30' : 'text-zinc-400 hover:text-white'}`}
+                            >
+                                <SparklesIcon className="w-4 h-4" />
+                                AI Suggested
+                            </button>
+                        </div>
+
+                        {categoryMode === 'Manual' ? (
+                            <div className="relative">
+                                <select
+                                    value={category}
+                                    onChange={(e) => setCategory(e.target.value)}
+                                    className="w-full bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-green-500 appearance-none cursor-pointer hover:border-zinc-600 transition-colors"
+                                >
+                                    <option value="" disabled>Select a category</option>
+                                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={category || (isSuggestingCategory ? '' : 'Click AI Suggested to generate')}
+                                    readOnly
+                                    className={`w-full bg-zinc-900/50 border rounded-lg px-4 py-3 font-medium focus:outline-none ${isSuggestingCategory ? 'text-zinc-500 border-zinc-700' : category ? 'text-green-400 border-green-500/30' : 'text-zinc-500 border-zinc-700 italic'}`}
+                                />
+                                {isSuggestingCategory && (
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 text-xs text-green-500 bg-zinc-900 px-2 py-1 rounded-full border border-green-500/20">
+                                        <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                                        Analyzing...
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     {/* Document Upload & AI Scoring */}
@@ -688,6 +769,6 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
 
                 </div>
             </div>
-        </div>
+        </div >
     );
 };

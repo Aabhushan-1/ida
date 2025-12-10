@@ -288,43 +288,84 @@ export async function updateAIScoring(
 // MARKETPLACE VIEW OPERATIONS
 // ============================================
 
+export interface MarketplaceFilters {
+    limit?: number;
+    offset?: number;
+    searchTerm?: string;
+    category?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    hasMvp?: boolean;
+    hasDocs?: boolean;
+    sort?: {
+        field: 'price' | 'overall_score';
+        direction: 'asc' | 'desc';
+    };
+}
+
 export async function getMarketplaceItems(
-    limit?: number,
-    offset?: number
+    filters: MarketplaceFilters = {}
 ): Promise<{ data: MarketplaceView[] | null; error: any }> {
     let query = supabase
         .from('marketplace')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
 
-    if (limit) {
-        query = query.limit(limit);
+    // Search (Keywords)
+    if (filters.searchTerm) {
+        const terms = filters.searchTerm.trim().split(/\s+/);
+        terms.forEach(term => {
+            if (term) {
+                query = query.or(`title.ilike.%${term}%,description.ilike.%${term}%`);
+            }
+        });
     }
 
-    if (offset) {
-        query = query.range(offset, offset + (limit || 10) - 1);
+    // Category
+    if (filters.category) {
+        query = query.eq('category', filters.category);
+    }
+
+    // Price
+    if (filters.minPrice !== undefined) query = query.gte('price', filters.minPrice);
+    if (filters.maxPrice !== undefined) query = query.lte('price', filters.maxPrice);
+
+    // MVP
+    if (filters.hasMvp) {
+        query = query.eq('mvp', true);
+    }
+
+    // Docs
+    if (filters.hasDocs) {
+        query = query.not('document_url', 'is', null);
+    }
+
+    // Sort
+    if (filters.sort) {
+        query = query.order(filters.sort.field, { ascending: filters.sort.direction === 'asc' });
+    } else {
+        // Default sort (if no search, or even with search if no specific sort)
+        // With search, typically relevance, but we don't have relevance score easily.
+        // Default to created_at descending.
+        query = query.order('created_at', { ascending: false });
+    }
+
+    // Pagination
+    if (filters.limit) query = query.limit(filters.limit);
+    if (filters.offset) {
+        const limit = filters.limit || 10;
+        query = query.range(filters.offset, filters.offset + limit - 1);
     }
 
     const { data, error } = await query;
     return { data, error };
 }
 
+// Deprecated: logic merged into getMarketplaceItems
 export async function searchMarketplaceItems(
     searchTerm: string,
     limit?: number
 ): Promise<{ data: MarketplaceView[] | null; error: any }> {
-    let query = supabase
-        .from('marketplace')
-        .select('*')
-        .or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
-        .order('overall_score', { ascending: false });
-
-    if (limit) {
-        query = query.limit(limit);
-    }
-
-    const { data, error } = await query;
-    return { data, error };
+    return getMarketplaceItems({ searchTerm, limit });
 }
 
 export async function getTopRatedMarketplaceItems(
