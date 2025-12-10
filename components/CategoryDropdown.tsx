@@ -41,14 +41,16 @@ export const CategoryDropdown: React.FC<CategoryDropdownProps> = ({
                 onClick={() => setIsOpen(!isOpen)}
                 className={`w-full flex items-center justify-between bg-zinc-950 border ${isOpen ? 'border-green-500' : 'border-zinc-700'} rounded-xl px-4 py-3 text-left transition-all hover:border-zinc-500 focus:outline-none`}
             >
-                <span className={`font-medium ${value ? 'text-white' : 'text-zinc-400'}`}>
+                <span className={`font-medium truncate flex-1 ${value ? 'text-white' : 'text-zinc-400'}`}>
                     {value || placeholder}
                 </span>
-                {isOpen ? (
-                    <ChevronUpIcon className="w-4 h-4 text-zinc-500" />
-                ) : (
-                    <ChevronDownIcon className="w-4 h-4 text-zinc-500" />
-                )}
+                <div className="flex-shrink-0 ml-2">
+                    {isOpen ? (
+                        <ChevronUpIcon className="w-4 h-4 text-zinc-500" />
+                    ) : (
+                        <ChevronDownIcon className="w-4 h-4 text-zinc-500" />
+                    )}
+                </div>
             </button>
 
             {isOpen && (
