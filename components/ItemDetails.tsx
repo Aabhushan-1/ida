@@ -191,15 +191,7 @@ export const ItemDetails: React.FC<ItemDetailsProps> = ({ ideaId, onBack }) => {
                                     </span>
                                 </div>
 
-                                {item.mvp_type === 'Digital/Saas' && item.digital_mvp && (
-                                    <div>
-                                        <div className="text-sm text-zinc-500 mb-2">Demo URL:</div>
-                                        <div className="flex items-center gap-2 text-zinc-500 bg-white/5 p-3 rounded-lg border border-zinc-800">
-                                            <LockClosedIcon className="w-4 h-4" />
-                                            <span className="text-sm font-medium">Link available after purchase</span>
-                                        </div>
-                                    </div>
-                                )}
+
 
                                 {item.mvp_type === 'Physical' && (item.physical_mvp_image || item.physical_mvp_video) && (
                                     <div className="space-y-4">
@@ -233,33 +225,19 @@ export const ItemDetails: React.FC<ItemDetailsProps> = ({ ideaId, onBack }) => {
                     <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/5 rounded-2xl p-8 shadow-lg">
                         <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                             <DocumentTextIcon className="w-5 h-5 text-green-500" />
-                            Supporting Documents
+                            Documents
                         </h2>
                         <div className="space-y-3">
-                            <div className="flex items-center gap-3 bg-zinc-950/50 border border-zinc-800 rounded-lg p-4 opacity-75">
+                            <div className="flex items-center gap-3 bg-zinc-950/50 border border-zinc-800 rounded-lg p-4">
                                 <DocumentTextIcon className="w-5 h-5 text-zinc-500" />
-                                <div className="flex-1">
-                                    <div className="text-sm font-medium text-white">Main Document</div>
-                                    <div className="text-xs text-zinc-500 flex items-center gap-1">
-                                        <LockClosedIcon className="w-3 h-3" />
-                                        Unlock to view
-                                    </div>
-                                </div>
-                                <LockClosedIcon className="w-4 h-4 text-zinc-600" />
+                                <div className="text-sm font-medium text-white">Main Document</div>
                             </div>
 
                             {[item.additional_doc_1, item.additional_doc_2, item.additional_doc_3].map((doc, idx) => (
                                 doc && (
-                                    <div key={idx} className="flex items-center gap-3 bg-zinc-950/50 border border-zinc-800 rounded-lg p-4 opacity-75">
+                                    <div key={idx} className="flex items-center gap-3 bg-zinc-950/50 border border-zinc-800 rounded-lg p-4">
                                         <DocumentTextIcon className="w-5 h-5 text-zinc-500" />
-                                        <div className="flex-1">
-                                            <div className="text-sm font-medium text-white">Additional Document {idx + 1}</div>
-                                            <div className="text-xs text-zinc-500 flex items-center gap-1">
-                                                <LockClosedIcon className="w-3 h-3" />
-                                                Unlock to view
-                                            </div>
-                                        </div>
-                                        <LockClosedIcon className="w-4 h-4 text-zinc-600" />
+                                        <div className="text-sm font-medium text-white">Additional Document {idx + 1}</div>
                                     </div>
                                 )
                             ))}
