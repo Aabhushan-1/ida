@@ -391,13 +391,32 @@ export async function getTopRatedMarketplaceItems(
 // ============================================
 
 export async function getIdeaDetailById(ideaId: string): Promise<{ data: IdeaDetailView | null; error: any }> {
-    const { data, error } = await supabase
+    const { data: viewData, error } = await supabase
         .from('idea_detail_page')
         .select('*')
         .eq('idea_id', ideaId)
         .single();
 
-    return { data, error };
+    if (error) return { data: null, error };
+    if (!viewData) return { data: null, error: null };
+
+    // Patch: Ensure user_id is present (in case the View maps it differently or is missing it)
+    // We fetch it directly from the source table 'ideas'
+    let finalData = { ...viewData } as IdeaDetailView;
+
+    if (!finalData.user_id) {
+        const { data: ideaData } = await supabase
+            .from('ideas')
+            .select('user_id')
+            .eq('idea_id', ideaId)
+            .single();
+
+        if (ideaData) {
+            finalData.user_id = ideaData.user_id;
+        }
+    }
+
+    return { data: finalData, error: null };
 }
 
 // ============================================
