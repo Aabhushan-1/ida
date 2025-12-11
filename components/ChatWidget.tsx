@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuthUser } from '../src/hooks/useAuthUser';
 import { supabase } from '../services/supabase';
 import { ChatService } from '../services/chat';
-import { getUserInfoById } from '../services/database'; // We need this
+import { getUserInfoById } from '../services/database';
 import type { Conversation, Message } from '../types/chat';
 import {
     ChatBubbleLeftRightIcon,
@@ -25,7 +26,7 @@ export const ChatWidget: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [view, setView] = useState<ViewArgs>('inbox');
     const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
-    const [activeThreadName, setActiveThreadName] = useState<string>(''); // For new chats
+    const [activeThreadName, setActiveThreadName] = useState<string>('');
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [loading, setLoading] = useState(false);
     const [newMessage, setNewMessage] = useState('');
@@ -44,7 +45,7 @@ export const ChatWidget: React.FC = () => {
         const handleOpenChat = async (e: Event) => {
             const detail = (e as CustomEvent<OpenChatDetail>).detail;
             if (!detail || !detail.userId) return;
-            if (user && detail.userId === user.id) return; // Can't chat with self
+            if (user && detail.userId === user.id) return;
 
             let name = detail.userName;
             if (!name) {
@@ -73,7 +74,7 @@ export const ChatWidget: React.FC = () => {
 
         window.addEventListener('ida:open-chat', handleOpenChat);
         return () => window.removeEventListener('ida:open-chat', handleOpenChat);
-    }, [user, conversations]); // Add conversations dependency to find existing name
+    }, [user, conversations]);
 
     // Initial Fetch & Subscription
     useEffect(() => {
@@ -113,7 +114,7 @@ export const ChatWidget: React.FC = () => {
                     : c
             ));
         }
-    }, [view, activeThreadId, conversations]); // Added conversations to depend on refreshing unread
+    }, [view, activeThreadId, conversations]);
 
     const fetchMessages = async () => {
         if (!user) return;
@@ -124,9 +125,6 @@ export const ChatWidget: React.FC = () => {
     };
 
     const handleIncomingMessage = async (msg: Message) => {
-        // If message is for the currently open thread, activeThreadId logic handles reading it?
-        // Actually the markThreadRead effect triggers on change. 
-        // We need to re-fetch to update the UI.
         await fetchMessages();
     };
 
@@ -150,7 +148,6 @@ export const ChatWidget: React.FC = () => {
     };
 
     const activeConversation = conversations.find(c => c.other_user_id === activeThreadId);
-    // Use activeThreadName if activeConversation is missing (new chat)
     const displayThreadName = activeConversation ? activeConversation.other_user_name : activeThreadName;
     const displayMessages = activeConversation ? activeConversation.messages : [];
 
@@ -158,8 +155,9 @@ export const ChatWidget: React.FC = () => {
 
     if (!user) return null;
 
-    return (
-        <div className="fixed bottom-6 right-6 z-50 font-sans print:hidden">
+    // Use Portal to ensure it renders at document body level, bypassing parent styles (like blur/transform)
+    return createPortal(
+        <div className="fixed bottom-6 right-6 z-[9999] font-sans print:hidden">
             {/* Chat Panel */}
             {isOpen && (
                 <div className="absolute bottom-16 right-0 w-80 md:w-96 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-2 duration-200" style={{ height: '500px' }}>
@@ -254,8 +252,8 @@ export const ChatWidget: React.FC = () => {
                                             <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                                 <div
                                                     className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm break-words ${isMe
-                                                        ? 'bg-green-600 text-white rounded-tr-sm'
-                                                        : 'bg-zinc-800 text-zinc-200 rounded-tl-sm'
+                                                            ? 'bg-green-600 text-white rounded-tr-sm'
+                                                            : 'bg-zinc-800 text-zinc-200 rounded-tl-sm'
                                                         }`}
                                                 >
                                                     {msg.content}
@@ -310,6 +308,7 @@ export const ChatWidget: React.FC = () => {
                     </div>
                 )}
             </button>
-        </div>
+        </div>,
+        document.body
     );
 };
