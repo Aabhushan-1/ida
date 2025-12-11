@@ -154,12 +154,17 @@ export const ChatWidget: React.FC = () => {
     // Mark as read when opening a thread
     useEffect(() => {
         if (view === 'thread' && activeThreadId && user) {
-            ChatService.markThreadRead(user.id, activeThreadId);
-            setConversations(prev => prev.map(c =>
-                c.other_user_id === activeThreadId
-                    ? { ...c, unread_count: 0 }
-                    : c
-            ));
+            const currentConvo = conversations.find(c => c.other_user_id === activeThreadId);
+
+            // Only update if there are unread messages to clear, avoiding infinite loop
+            if (currentConvo && currentConvo.unread_count > 0) {
+                ChatService.markThreadRead(user.id, activeThreadId);
+                setConversations(prev => prev.map(c =>
+                    c.other_user_id === activeThreadId
+                        ? { ...c, unread_count: 0 }
+                        : c
+                ));
+            }
         }
     }, [view, activeThreadId, conversations]);
 
