@@ -6,7 +6,7 @@ import { useAuthUser } from '../hooks/useAuthUser';
 import { supabase } from '../../services/supabase';
 import { getUserInfoById, updateUserUsername, updateUserProfilePicture, uploadDocument, getUserLikedListings, getUserSavedListings, getUserListings } from '../../services/database';
 import type { UserInfo, MarketplaceView } from '../../types/database';
-import { EnvelopeIcon, CameraIcon, HeartIcon, BookmarkIcon, ArrowRightIcon, ShoppingBagIcon } from '@heroicons/react/24/outline';
+import { EnvelopeIcon, CameraIcon, HeartIcon, BookmarkIcon, ArrowRightIcon, ShoppingBagIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 import { handleNavigation } from '../utils/navigation';
 import '../../index.css';
 
@@ -19,6 +19,13 @@ const ProfilePage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isUploadingPicture, setIsUploadingPicture] = useState(false);
     const profilePictureInputRef = React.useRef<HTMLInputElement>(null);
+
+    // Password Reset State
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+    const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     // Likes, Saves & My Listings
     const [likedIdeas, setLikedIdeas] = useState<MarketplaceView[]>([]);
@@ -146,6 +153,53 @@ const ProfilePage = () => {
             setMessage({ type: 'error', text: err.message || 'Failed to upload profile picture' });
         } finally {
             setIsUploadingPicture(false);
+        }
+    };
+
+    const handleUpdatePassword = async () => {
+        if (!user || !user.email) return;
+
+        setPasswordMessage(null);
+        setIsUpdatingPassword(true);
+
+        try {
+            // 1. Validation
+            if (newPassword !== confirmPassword) {
+                throw new Error("New passwords do not match");
+            }
+
+            const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[\W_]).{8,15}$/;
+            if (!passwordRegex.test(newPassword)) {
+                throw new Error("Password must be 8-15 characters and contain letters, numbers, and symbols.");
+            }
+
+            // 2. Verify Current Password by re-authenticating
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: user.email,
+                password: currentPassword,
+            });
+
+            if (signInError) {
+                throw new Error("Current password is incorrect");
+            }
+
+            // 3. Update Password
+            const { error: updateError } = await supabase.auth.updateUser({
+                password: newPassword
+            });
+
+            if (updateError) throw updateError;
+
+            // Success
+            setPasswordMessage({ type: 'success', text: 'Password updated successfully' });
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+
+        } catch (err: any) {
+            setPasswordMessage({ type: 'error', text: err.message || 'Failed to update password' });
+        } finally {
+            setIsUpdatingPassword(false);
         }
     };
 
@@ -325,6 +379,65 @@ const ProfilePage = () => {
                     </div>
 
                 </div>
+
+                {/* Security / Password Card - Private Only */}
+                {!isPublicView && (
+                    <div className="bg-[#09090b] border border-zinc-800 rounded-xl p-8 mt-8">
+                        <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                            <LockClosedIcon className="w-5 h-5 text-zinc-400" />
+                            Security
+                        </h2>
+
+                        <div className="space-y-4 max-w-md">
+                            <div>
+                                <label className="block text-xs font-semibold text-zinc-500 mb-2">Current Password</label>
+                                <input
+                                    type="password"
+                                    value={currentPassword}
+                                    onChange={e => setCurrentPassword(e.target.value)}
+                                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-zinc-700 transition-colors"
+                                    placeholder="Enter current password"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-zinc-500 mb-2">New Password <span className="text-zinc-600 font-normal">(8-15 chars, letters, numbers, symbols)</span></label>
+                                <input
+                                    type="password"
+                                    value={newPassword}
+                                    onChange={e => setNewPassword(e.target.value)}
+                                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-zinc-700 transition-colors"
+                                    placeholder="Enter new password"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-zinc-500 mb-2">Confirm New Password</label>
+                                <input
+                                    type="password"
+                                    value={confirmPassword}
+                                    onChange={e => setConfirmPassword(e.target.value)}
+                                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-zinc-700 transition-colors"
+                                    placeholder="Retype new password"
+                                />
+                            </div>
+
+                            {passwordMessage && (
+                                <div className={`p-3 rounded-lg text-sm ${passwordMessage.type === 'success' ? 'text-green-400 bg-green-500/10 border border-green-500/20' : 'text-red-400 bg-red-500/10 border border-red-500/20'}`}>
+                                    {passwordMessage.text}
+                                </div>
+                            )}
+
+                            <div className="pt-2">
+                                <button
+                                    onClick={handleUpdatePassword}
+                                    disabled={isUpdatingPassword || !currentPassword || !newPassword}
+                                    className="bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isUpdatingPassword ? 'Updating...' : 'Update Password'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Selling Ideas Section */}
                 <div className="bg-[#09090b] border border-zinc-800 rounded-xl p-8 mt-8">
