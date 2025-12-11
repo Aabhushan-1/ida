@@ -147,6 +147,12 @@ export const ItemDetails: React.FC<ItemDetailsProps> = ({ ideaId, onBack }) => {
 
         console.log('Contact Seller clicked', { currentUserId: currentUser.id, sellerId: item.user_id });
 
+        if (!item.user_id) {
+            alert("System Error: Could not identify the seller. Please try again later or contact support.");
+            console.error("Critical: item.user_id is missing even after patch strategies.");
+            return;
+        }
+
         if (currentUser.id === item.user_id) return alert('You cannot message yourself.');
 
         window.dispatchEvent(new CustomEvent('ida:open-chat', {

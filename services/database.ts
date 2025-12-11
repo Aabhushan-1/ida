@@ -406,38 +406,47 @@ export async function getIdeaDetailById(ideaId: string): Promise<{ data: IdeaDet
     // Strategy 1: Already has user_id?
     if (finalData.user_id) return { data: finalData, error: null };
 
-    // Strategy 2: Fetch from 'ideas' table (might fail if RLS)
+    // Strategy 2: Fetch from 'ideas' table
     try {
-        const { data: ideaData } = await supabase
+        console.log('Strategy 2: Attempting fetch from ideas table for', ideaId);
+        const { data: ideaData, error: ideaError } = await supabase
             .from('ideas')
             .select('user_id')
             .eq('idea_id', ideaId)
-            .maybeSingle(); // Use maybeSingle to avoid 404 invalidating the whole flow
+            .maybeSingle();
 
+        if (ideaError) console.warn('Strategy 2 Error:', ideaError);
         if (ideaData && ideaData.user_id) {
             finalData.user_id = ideaData.user_id;
             console.log('Patched user_id from ideas table:', ideaData.user_id);
             return { data: finalData, error: null };
+        } else {
+            console.log('Strategy 2: No data or user_id found');
         }
-    } catch (e) { console.warn('Strategy 2 failed', e); }
+    } catch (e) { console.warn('Strategy 2 Exception', e); }
 
-    // Strategy 3: Fetch from 'user_info' table via username (Reliable Fallback)
+    // Strategy 3: Fetch from 'user_info' table via username
     if (finalData.username) {
         try {
-            // Strip @ if possibly duplicated logic (though DB usually stores with @)
-            // But we'll use strict equality first
-            const { data: userData } = await supabase
+            console.log('Strategy 3: Attempting fetch from user_info for', finalData.username);
+            const { data: userData, error: userError } = await supabase
                 .from('user_info')
                 .select('user_id')
-                .eq('username', finalData.username) // Assumes username in view matches user_info
+                .eq('username', finalData.username)
                 .maybeSingle();
+
+            if (userError) console.warn('Strategy 3 Error:', userError);
 
             if (userData && userData.user_id) {
                 finalData.user_id = userData.user_id;
                 console.log('Patched user_id from user_info table:', userData.user_id);
                 return { data: finalData, error: null };
+            } else {
+                console.log('Strategy 3: User not found for username:', finalData.username);
             }
-        } catch (e) { console.warn('Strategy 3 failed', e); }
+        } catch (e) { console.warn('Strategy 3 Exception', e); }
+    } else {
+        console.warn('Strategy 3 Skipped: No username in view data');
     }
 
     return { data: finalData, error: null };
