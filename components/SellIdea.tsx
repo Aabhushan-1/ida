@@ -275,7 +275,7 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
     const handleMvpMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const rawFiles = Array.from(e.target.files);
-            const processedFiles = await Promise.all(rawFiles.map(f => compressImage(f)));
+            const processedFiles = await Promise.all(rawFiles.map((f: File) => compressImage(f)));
             setMvpMediaFiles([...mvpMediaFiles, ...processedFiles]);
         }
     };
