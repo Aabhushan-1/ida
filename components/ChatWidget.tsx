@@ -45,19 +45,52 @@ export const ChatWidget: React.FC = () => {
         const handleOpenChat = async (e: Event) => {
             const detail = (e as CustomEvent<OpenChatDetail>).detail;
             console.log('ChatWidget received open-chat event:', detail);
-            if (!detail || !detail.userId) return;
-            if (user && detail.userId === user.id) return;
 
-            let name = detail.userName;
+            if (!detail) return;
+
+            let targetUserId = detail.userId;
+            let targetUserName = detail.userName;
+
+            // Self-Healing: If ID is missing but we have a username, fetch the ID
+            if (!targetUserId && targetUserName) {
+                console.log('ChatWidget: Missing userId, attempting to handle by username:', targetUserName);
+                try {
+                    const { data, error } = await supabase
+                        .from('user_info')
+                        .select('user_id')
+                        .eq('username', targetUserName)
+                        .maybeSingle();
+
+                    if (data && data.user_id) {
+                        console.log('ChatWidget: Resolved userId from username:', data.user_id);
+                        targetUserId = data.user_id;
+                    } else {
+                        console.error('ChatWidget: Failed to resolve userId from username', error);
+                        alert('Could not start chat: User not found.');
+                        return;
+                    }
+                } catch (err) {
+                    console.error('ChatWidget: Exception resolving user', err);
+                    return;
+                }
+            } else if (!targetUserId) {
+                return;
+            }
+
+            if (user && targetUserId === user.id) return; // Can't chat with self
+
+            let name = targetUserName;
+            // ... (rest of logic uses targetUserId)
+
             if (!name) {
                 // Try to find in existing convos
-                const existing = conversations.find(c => c.other_user_id === detail.userId);
+                const existing = conversations.find(c => c.other_user_id === targetUserId);
                 if (existing) {
                     name = existing.other_user_name;
                 } else {
                     // Fetch name
                     try {
-                        const { data } = await getUserInfoById(detail.userId);
+                        const { data } = await getUserInfoById(targetUserId!);
                         if (data) {
                             name = data.name || data.username;
                         }
@@ -67,7 +100,7 @@ export const ChatWidget: React.FC = () => {
                 }
             }
 
-            setActiveThreadId(detail.userId);
+            setActiveThreadId(targetUserId!);
             setActiveThreadName(name || "User");
             setView('thread');
             setIsOpen(true);
