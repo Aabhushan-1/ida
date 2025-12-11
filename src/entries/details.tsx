@@ -1,6 +1,7 @@
-import React, { useMemo, useEffect } from 'react';
+﻿import React, { useMemo, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { NavBar } from '../../components/NavBar';
+import { Footer } from '../../components/Footer';
 import { ItemDetails } from '../../components/ItemDetails';
 import { useAuthUser } from '../hooks/useAuthUser';
 import '../../index.css';
@@ -28,7 +29,7 @@ const ItemDetailsPage = () => {
     // Show loading while checking auth
     if (!user) {
         return (
-            <div className="min-h-screen bg-zinc-950 text-zinc-50 flex items-center justify-center">
+            <div className="min-h-screen bg-zinc-950 text-zinc-50 flex items-center justify-center flex flex-col">
                 <div className="text-zinc-400">Loading...</div>
             </div>
         );
@@ -36,7 +37,7 @@ const ItemDetailsPage = () => {
 
     if (!ideaId) {
         return (
-            <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center">
+            <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center flex flex-col">
                 <div className="text-center">
                     <h1 className="text-2xl font-bold mb-4">Invalid Idea ID</h1>
                     <a href="/pages/marketplace.html" className="text-green-400 hover:underline">Return to Marketplace</a>
@@ -62,9 +63,11 @@ const ItemDetailsPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-50 bg-dot-grid selection:bg-green-500/30">
+        <div className="min-h-screen bg-zinc-950 text-zinc-50 bg-dot-grid selection:bg-green-500/30 flex flex-col">
             <NavBar user={user} onLogout={handleLogout} onNavigate={handleNavigate} currentPage="item-details" />
             <ItemDetails ideaId={ideaId} onBack={() => window.location.href = '/pages/marketplace.html'} />
+            <Footer onNavigate={handleNavigation} />
+
         </div>
     );
 };

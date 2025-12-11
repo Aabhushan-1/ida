@@ -1,6 +1,7 @@
-import React from 'react';
+﻿import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { NavBar } from '../../components/NavBar';
+import { Footer } from '../../components/Footer';
 import { DigitalSolutions } from '../../components/DigitalSolutions';
 import { useAuthUser } from '../hooks/useAuthUser';
 import { handleNavigation } from '../utils/navigation';
@@ -10,11 +11,13 @@ const SolutionsPage = () => {
     const { user, handleLogout } = useAuthUser();
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-50 bg-dot-grid selection:bg-green-500/30">
+        <div className="min-h-screen bg-zinc-950 text-zinc-50 bg-dot-grid selection:bg-green-500/30 flex flex-col">
             <NavBar user={user} onLogout={handleLogout} onNavigate={handleNavigation} currentPage="solutions" />
             <div className="pt-24">
                 <DigitalSolutions />
             </div>
+            <Footer onNavigate={handleNavigation} />
+
         </div>
     );
 };

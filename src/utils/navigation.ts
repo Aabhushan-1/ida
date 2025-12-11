@@ -4,7 +4,7 @@
  */
 
 /**
- * Navigation helper for NavBar component
+ * Navigation helper for NavBar and Footer components
  * Maps page identifiers to their corresponding routes
  */
 export const handleNavigation = (page: string): void => {
@@ -15,7 +15,13 @@ export const handleNavigation = (page: string): void => {
         'sell-idea': '/pages/sell.html',
         'login': '/pages/login.html',
         'profile': '/pages/profile.html',
-        'dashboard': '/pages/dashboard.html'
+        'dashboard': '/pages/dashboard.html',
+        'about': '/pages/about.html',
+        'contact': '/pages/contact.html',
+        'how-it-works': '/pages/how-it-works.html',
+        'why-choose-us': '/pages/why-choose-us.html',
+        'blog': '/pages/blog.html',
+        'success-stories': '/pages/success-stories.html'
     };
 
     if (routes[page]) {

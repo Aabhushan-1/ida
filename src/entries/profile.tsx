@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import { NavBar } from '../../components/NavBar';
+import { Footer } from '../../components/Footer';
 import { useAuthUser } from '../hooks/useAuthUser';
 import { supabase } from '../../services/supabase';
 import { getUserInfoById, updateUserUsername, updateUserProfilePicture, uploadDocument, getUserLikedListings, getUserSavedListings } from '../../services/database';
@@ -127,7 +128,7 @@ const ProfilePage = () => {
     // Show loading while checking auth or fetching data
     if (!user || isLoading) {
         return (
-            <div className="min-h-screen bg-zinc-950 text-zinc-50 flex items-center justify-center">
+            <div className="min-h-screen bg-zinc-950 text-zinc-50 flex items-center justify-center flex flex-col">
                 <div className="text-zinc-400">Loading...</div>
             </div>
         );
@@ -135,14 +136,14 @@ const ProfilePage = () => {
 
     if (!userInfo) {
         return (
-            <div className="min-h-screen bg-zinc-950 text-zinc-50 flex items-center justify-center">
+            <div className="min-h-screen bg-zinc-950 text-zinc-50 flex items-center justify-center flex flex-col">
                 <div className="text-zinc-400">Profile data not found</div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-green-500/30 font-sans">
+        <div className="min-h-screen bg-black text-white selection:bg-green-500/30 font-sans flex flex-col">
             <NavBar user={user} onLogout={handleLogout} onNavigate={handleNavigation} currentPage="profile" />
 
             <div className="w-full max-w-2xl mx-auto pt-32 px-4 animate-in fade-in duration-500">
@@ -381,6 +382,8 @@ const ProfilePage = () => {
                     )}
                 </div>
             </div>
+            <Footer onNavigate={handleNavigation} />
+
         </div>
     );
 };

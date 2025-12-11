@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { NavBar } from '../../components/NavBar';
+import { Footer } from '../../components/Footer';
 import { Dashboard } from '../../components/Dashboard';
 import { useAuthUser } from '../hooks/useAuthUser';
 import { handleNavigation } from '../utils/navigation';
@@ -37,9 +38,11 @@ const DashboardPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-50 bg-dot-grid selection:bg-green-500/30">
+        <div className="min-h-screen bg-zinc-950 text-zinc-50 bg-dot-grid selection:bg-green-500/30 flex flex-col">
             <NavBar user={user} onLogout={handleLogout} onNavigate={handleNavigation} currentPage="dashboard" />
             <Dashboard user={user} />
+            <Footer onNavigate={handleNavigation} />
+
         </div>
     );
 };

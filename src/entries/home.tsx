@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { Hero } from '../../components/Hero';
 import { NavBar } from '../../components/NavBar';
+import { Footer } from '../../components/Footer';
 import { InputArea } from '../../components/InputArea';
 import { TrendingGrid } from '../../components/TrendingGrid';
 import { useAuthUser } from '../hooks/useAuthUser';
@@ -19,7 +20,7 @@ const Home = () => {
     }, [user]);
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-50 bg-dot-grid selection:bg-green-500/30">
+        <div className="min-h-screen bg-zinc-950 text-zinc-50 bg-dot-grid selection:bg-green-500/30 flex flex-col">
             <NavBar user={user} onLogout={handleLogout} onNavigate={handleNavigation} />
             <div className="max-w-7xl mx-auto px-4 pt-32 pb-12 flex flex-col items-center animate-in fade-in duration-700">
                 <Hero />
@@ -33,6 +34,8 @@ const Home = () => {
                     </a>
                 </div>
             </div>
+            <Footer onNavigate={handleNavigation} />
+
         </div>
     );
 };
