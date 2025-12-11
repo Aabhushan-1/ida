@@ -6,8 +6,8 @@ import React from 'react';
 
 export const About: React.FC = () => {
     return (
-        <div className="w-full max-w-4xl mx-auto px-4 pt-24 pb-12 animate-in fade-in duration-500">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">Democratizing Entrepreneurship</h1>
+        <div className="w-full max-w-4xl mx-auto px-4 pt-44 pb-24 animate-in fade-in duration-500 flex flex-col items-center">
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-12 text-center">Democratizing Entrepreneurship</h1>
 
             <div className="prose prose-invert prose-lg text-zinc-400 leading-relaxed space-y-8">
                 <p className="text-xl text-zinc-300">

@@ -7,10 +7,10 @@ import { ShieldCheckIcon, GlobeAmericasIcon, CpuChipIcon, ScaleIcon } from '@her
 
 export const WhyChooseUs: React.FC = () => {
     return (
-        <div className="w-full max-w-6xl mx-auto px-4 pt-24 pb-12 animate-in fade-in duration-500">
-            <div className="mb-16">
+        <div className="w-full max-w-6xl mx-auto px-4 pt-44 pb-24 animate-in fade-in duration-500">
+            <div className="mb-16 text-center max-w-3xl mx-auto">
                 <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">Why Ida?</h1>
-                <p className="text-zinc-400 text-lg max-w-2xl">
+                <p className="text-zinc-400 text-lg">
                     Traditional IP sales are slow, expensive, and legally complex. We've rebuilt the process for the speed of the internet.
                 </p>
             </div>

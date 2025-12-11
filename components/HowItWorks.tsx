@@ -30,7 +30,7 @@ export const HowItWorks: React.FC = () => {
     ];
 
     return (
-        <div className="w-full max-w-6xl mx-auto px-4 pt-24 pb-12 animate-in fade-in duration-500">
+        <div className="w-full max-w-6xl mx-auto px-4 pt-44 pb-24 animate-in fade-in duration-500">
             <div className="text-center max-w-2xl mx-auto mb-16">
                 <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">From Napkin to Exit</h1>
                 <p className="text-zinc-400 text-lg">

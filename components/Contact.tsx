@@ -7,35 +7,35 @@ import { EnvelopeIcon, MapPinIcon } from '@heroicons/react/24/outline';
 
 export const Contact: React.FC = () => {
     return (
-        <div className="w-full max-w-5xl mx-auto px-4 pt-24 pb-12 animate-in fade-in duration-500">
+        <div className="w-full max-w-5xl mx-auto px-4 pt-44 pb-24 animate-in fade-in duration-500">
+            <div className="text-center max-w-2xl mx-auto mb-16">
+                <h1 className="text-4xl font-bold text-white mb-6">Get in touch</h1>
+                <p className="text-zinc-400 text-lg">
+                    Have a question about a listing? Need help valuating your asset? Our team is here to help.
+                </p>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div>
-                    <h1 className="text-4xl font-bold text-white mb-6">Get in touch</h1>
-                    <p className="text-zinc-400 text-lg mb-8">
-                        Have a question about a listing? Need help valuating your asset? Our team is here to help.
-                    </p>
-
-                    <div className="space-y-6">
-                        <div className="flex items-start gap-4">
-                            <div className="p-3 bg-zinc-900 rounded-lg">
-                                <EnvelopeIcon className="w-6 h-6 text-green-400" />
-                            </div>
-                            <div>
-                                <h3 className="text-white font-bold">Email Us</h3>
-                                <p className="text-zinc-500 text-sm">support@ida.marketplace</p>
-                                <p className="text-zinc-500 text-sm">partnerships@ida.marketplace</p>
-                            </div>
+                <div className="space-y-6 flex flex-col justify-center">
+                    <div className="flex items-start gap-4">
+                        <div className="p-3 bg-zinc-900 rounded-lg">
+                            <EnvelopeIcon className="w-6 h-6 text-green-400" />
                         </div>
+                        <div>
+                            <h3 className="text-white font-bold">Email Us</h3>
+                            <p className="text-zinc-500 text-sm">support@ida.marketplace</p>
+                            <p className="text-zinc-500 text-sm">partnerships@ida.marketplace</p>
+                        </div>
+                    </div>
 
-                        <div className="flex items-start gap-4">
-                            <div className="p-3 bg-zinc-900 rounded-lg">
-                                <MapPinIcon className="w-6 h-6 text-green-400" />
-                            </div>
-                            <div>
-                                <h3 className="text-white font-bold">Headquarters</h3>
-                                <p className="text-zinc-500 text-sm">123 Innovation Blvd, Suite 400</p>
-                                <p className="text-zinc-500 text-sm">San Francisco, CA 94103</p>
-                            </div>
+                    <div className="flex items-start gap-4">
+                        <div className="p-3 bg-zinc-900 rounded-lg">
+                            <MapPinIcon className="w-6 h-6 text-green-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-white font-bold">Headquarters</h3>
+                            <p className="text-zinc-500 text-sm">123 Innovation Blvd, Suite 400</p>
+                            <p className="text-zinc-500 text-sm">San Francisco, CA 94103</p>
                         </div>
                     </div>
                 </div>
