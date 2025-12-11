@@ -17,6 +17,11 @@ CREATE INDEX IF NOT EXISTS messages_created_at_idx ON public.messages(created_at
 -- Enable RLS
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies to avoid conflicts
+DROP POLICY IF EXISTS "Users can read their own messages" ON public.messages;
+DROP POLICY IF EXISTS "Users can insert messages as sender" ON public.messages;
+DROP POLICY IF EXISTS "Recipients can update their received messages" ON public.messages;
+
 -- Policies
 -- 1. Users can read messages they sent or received
 CREATE POLICY "Users can read their own messages"
@@ -52,12 +57,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Drop existing trigger to avoid conflicts
+DROP TRIGGER IF EXISTS check_message_rate_limit_trigger ON public.messages;
+
 CREATE TRIGGER check_message_rate_limit_trigger
     BEFORE INSERT ON public.messages
     FOR EACH ROW EXECUTE PROCEDURE check_message_rate_limit();
-
--- Note on Expiration:
--- To physically delete messages older than 24h, you would typically run a cron job or scheduled query:
--- DELETE FROM public.messages WHERE created_at < now() - interval '24 hours';
--- For this implementation, the frontend will filter out expired messages, 
--- and we can enforce it in RLS if strictly needed, but manual cleanup is safer.
