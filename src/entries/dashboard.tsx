@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { NavBar } from '../../components/NavBar';
 import { Dashboard } from '../../components/Dashboard';
 import { useAuthUser } from '../hooks/useAuthUser';
+import { handleNavigation } from '../utils/navigation';
 import '../../index.css';
 
 const DashboardPage = () => {
@@ -37,7 +38,7 @@ const DashboardPage = () => {
 
     return (
         <div className="min-h-screen bg-zinc-950 text-zinc-50 bg-dot-grid selection:bg-green-500/30">
-            <NavBar user={user} onLogout={handleLogout} currentPage="dashboard" />
+            <NavBar user={user} onLogout={handleLogout} onNavigate={handleNavigation} currentPage="dashboard" />
             <Dashboard user={user} />
         </div>
     );

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { NavBar } from '../../components/NavBar';
 import { SellIdea } from '../../components/SellIdea';
 import { useAuthUser } from '../hooks/useAuthUser';
+import { handleNavigation } from '../utils/navigation';
 import '../../index.css';
 
 const SellPage = () => {
@@ -32,7 +33,7 @@ const SellPage = () => {
 
     return (
         <div className="min-h-screen bg-zinc-950 text-zinc-50 bg-dot-grid selection:bg-green-500/30">
-            <NavBar user={user} onLogout={handleLogout} currentPage="sell-idea" />
+            <NavBar user={user} onLogout={handleLogout} onNavigate={handleNavigation} currentPage="sell-idea" />
             <SellIdea onBack={() => window.location.href = '/pages/marketplace.html'} />
         </div>
     );

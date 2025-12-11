@@ -45,9 +45,25 @@ const ItemDetailsPage = () => {
         )
     }
 
+    const handleNavigate = (page: string) => {
+        const routes: Record<string, string> = {
+            'home': '/index.html',
+            'marketplace': '/pages/marketplace.html',
+            'solutions': '/pages/solutions.html',
+            'sell-idea': '/pages/sell.html',
+            'login': '/pages/login.html',
+            'profile': '/pages/profile.html',
+            'dashboard': '/pages/dashboard.html'
+        };
+
+        if (routes[page]) {
+            window.location.href = routes[page];
+        }
+    };
+
     return (
         <div className="min-h-screen bg-zinc-950 text-zinc-50 bg-dot-grid selection:bg-green-500/30">
-            <NavBar user={user} onLogout={handleLogout} currentPage="item-details" />
+            <NavBar user={user} onLogout={handleLogout} onNavigate={handleNavigate} currentPage="item-details" />
             <ItemDetails ideaId={ideaId} onBack={() => window.location.href = '/pages/marketplace.html'} />
         </div>
     );

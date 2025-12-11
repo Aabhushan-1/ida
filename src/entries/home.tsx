@@ -5,6 +5,7 @@ import { NavBar } from '../../components/NavBar';
 import { InputArea } from '../../components/InputArea';
 import { TrendingGrid } from '../../components/TrendingGrid';
 import { useAuthUser } from '../hooks/useAuthUser';
+import { handleNavigation } from '../utils/navigation';
 import '../../index.css';
 
 const Home = () => {
@@ -19,7 +20,7 @@ const Home = () => {
 
     return (
         <div className="min-h-screen bg-zinc-950 text-zinc-50 bg-dot-grid selection:bg-green-500/30">
-            <NavBar user={user} onLogout={handleLogout} />
+            <NavBar user={user} onLogout={handleLogout} onNavigate={handleNavigation} />
             <div className="max-w-7xl mx-auto px-4 pt-32 pb-12 flex flex-col items-center animate-in fade-in duration-700">
                 <Hero />
                 <div className="w-full flex justify-center mb-12">

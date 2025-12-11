@@ -6,6 +6,7 @@ import { supabase } from '../../services/supabase';
 import { getUserInfoById, updateUserUsername, updateUserProfilePicture, uploadDocument, getUserLikedListings, getUserSavedListings } from '../../services/database';
 import type { UserInfo, MarketplaceView } from '../../types/database';
 import { EnvelopeIcon, CameraIcon, HeartIcon, BookmarkIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { handleNavigation } from '../utils/navigation';
 import '../../index.css';
 
 const ProfilePage = () => {
@@ -142,7 +143,7 @@ const ProfilePage = () => {
 
     return (
         <div className="min-h-screen bg-black text-white selection:bg-green-500/30 font-sans">
-            <NavBar user={user} onLogout={handleLogout} currentPage="profile" />
+            <NavBar user={user} onLogout={handleLogout} onNavigate={handleNavigation} currentPage="profile" />
 
             <div className="w-full max-w-2xl mx-auto pt-32 px-4 animate-in fade-in duration-500">
 

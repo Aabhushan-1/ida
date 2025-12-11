@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { NavBar } from '../../components/NavBar';
 import { Marketplace } from '../../components/Marketplace';
 import { useAuthUser } from '../hooks/useAuthUser';
+import { handleNavigation } from '../utils/navigation';
 import '../../index.css';
 
 const MarketplacePage = () => {
@@ -10,7 +11,7 @@ const MarketplacePage = () => {
 
     return (
         <div className="min-h-screen bg-zinc-950 text-zinc-50 bg-dot-grid selection:bg-green-500/30">
-            <NavBar user={user} onLogout={handleLogout} currentPage="marketplace" />
+            <NavBar user={user} onLogout={handleLogout} onNavigate={handleNavigation} currentPage="marketplace" />
             <Marketplace user={user} />
         </div>
     );
