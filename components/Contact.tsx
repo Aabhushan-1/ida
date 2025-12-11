@@ -34,8 +34,7 @@ export const Contact: React.FC = () => {
                         </div>
                         <div>
                             <h3 className="text-white font-bold">Headquarters</h3>
-                            <p className="text-zinc-500 text-sm">123 Innovation Blvd, Suite 400</p>
-                            <p className="text-zinc-500 text-sm">San Francisco, CA 94103</p>
+                            <p className="text-zinc-500 text-sm">Samakhushi, Kathmandu, Nepal</p>
                         </div>
                     </div>
                 </div>
