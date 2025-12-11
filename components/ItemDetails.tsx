@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     ArrowLeftIcon, CheckBadgeIcon, ChartBarIcon, DocumentTextIcon, ShieldCheckIcon, LinkIcon, DocumentCheckIcon, LockClosedIcon,
-    HeartIcon, BookmarkIcon
+    HeartIcon, BookmarkIcon, ShareIcon, ClipboardDocumentIcon, XMarkIcon, CheckIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon, HeartIcon as HeartIconSolid, BookmarkIcon as BookmarkIconSolid } from '@heroicons/react/24/solid';
 import { getIdeaDetailById, getLikeStatus, toggleLike, getSaveStatus, toggleSave } from '../services/database';
@@ -23,6 +23,16 @@ export const ItemDetails: React.FC<ItemDetailsProps> = ({ ideaId, onBack }) => {
     const [isLiked, setIsLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(0);
     const [isSaved, setIsSaved] = useState(false);
+
+    // Share Modal State
+    const [isShareOpen, setIsShareOpen] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    const handleCopyLink = () => {
+        navigator.clipboard.writeText(window.location.href);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
     const [currentUser, setCurrentUser] = useState<User | null>(null);
 
     useEffect(() => {
@@ -402,6 +412,14 @@ export const ItemDetails: React.FC<ItemDetailsProps> = ({ ideaId, onBack }) => {
                                 )}
                                 <span className="text-sm font-medium">{isSaved ? 'Saved' : 'Save'}</span>
                             </button>
+
+                            <button
+                                onClick={() => setIsShareOpen(true)}
+                                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-600 hover:bg-zinc-800 transition-colors"
+                            >
+                                <ShareIcon className="w-5 h-5" />
+                                <span className="text-sm font-medium">Share</span>
+                            </button>
                         </div>
 
                         {/* Trust Badges */}
@@ -431,6 +449,60 @@ export const ItemDetails: React.FC<ItemDetailsProps> = ({ ideaId, onBack }) => {
                 </div>
 
             </div>
+
+            {/* Share Modal */}
+            {isShareOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="w-full max-w-md bg-zinc-900 border border-white/10 rounded-2xl p-6 shadow-2xl relative animate-in zoom-in-95 duration-200">
+                        <button
+                            onClick={() => setIsShareOpen(false)}
+                            className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors"
+                        >
+                            <XMarkIcon className="w-6 h-6" />
+                        </button>
+
+                        <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                            <ShareIcon className="w-5 h-5 text-green-500" />
+                            Share this Idea
+                        </h3>
+                        <p className="text-zinc-400 text-sm mb-6">Copy the link below to share with others.</p>
+
+                        <div className="space-y-4">
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <LinkIcon className="h-5 w-5 text-zinc-500" />
+                                </div>
+                                <input
+                                    type="text"
+                                    readOnly
+                                    value={window.location.href}
+                                    className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 text-sm rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:border-green-500/50"
+                                />
+                            </div>
+
+                            <button
+                                onClick={handleCopyLink}
+                                className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold transition-all ${copied
+                                        ? 'bg-green-500 text-black'
+                                        : 'bg-white text-black hover:bg-zinc-200'
+                                    }`}
+                            >
+                                {copied ? (
+                                    <>
+                                        <CheckIcon className="w-5 h-5" />
+                                        Copied to Clipboard!
+                                    </>
+                                ) : (
+                                    <>
+                                        <ClipboardDocumentIcon className="w-5 h-5" />
+                                        Copy Link
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
