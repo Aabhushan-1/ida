@@ -392,7 +392,7 @@ export const ItemDetails: React.FC<ItemDetailsProps> = ({ ideaId, onBack }) => {
                         <div className="flex gap-3 mb-8">
                             <button
                                 onClick={handleLike}
-                                className={`flex - 1 flex items - center justify - center gap - 2 py - 2.5 rounded - lg border transition - colors ${isLiked
+                                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg border transition-colors ${isLiked
                                     ? 'bg-pink-500/10 border-pink-500/50 text-pink-500 hover:bg-pink-500/20'
                                     : 'border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-600 hover:bg-zinc-800'
                                     } `}
