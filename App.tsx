@@ -227,7 +227,7 @@ const App: React.FC = () => {
                   onGenerate={handleGenerate}
                   isGenerating={isGenerating}
                   disabled={isFocused}
-                  onNavigate={() => setCurrentPage('login')}
+                  onNavigate={() => setCurrentPage('signup')}
                 />
               </div>
 

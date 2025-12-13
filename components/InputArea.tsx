@@ -43,7 +43,7 @@ const CyclingText = () => {
   );
 };
 
-export const InputArea: React.FC<InputAreaProps> = ({ isGenerating = false }) => {
+export const InputArea: React.FC<InputAreaProps> = ({ isGenerating = false, onNavigate }) => {
   return (
     <div className="w-full max-w-4xl mx-auto perspective-1000">
       <div className="relative group transition-all duration-300">
@@ -56,7 +56,6 @@ export const InputArea: React.FC<InputAreaProps> = ({ isGenerating = false }) =>
             rounded-xl border border-dashed border-zinc-700
             overflow-hidden
             transition-all duration-300
-            pointer-events-none
           "
         >
           {/* Technical Grid Background */}
@@ -71,12 +70,15 @@ export const InputArea: React.FC<InputAreaProps> = ({ isGenerating = false }) =>
           <div className="absolute bottom-4 right-4 w-4 h-4 border-r-2 border-b-2 border-zinc-600"></div>
 
           <div className="relative z-10 flex flex-col items-center text-center space-y-6 md:space-y-8 p-6 md:p-8 w-full">
-            <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center transition-transform duration-500">
-              <div className={`absolute inset-0 rounded-2xl bg-zinc-800 border border-zinc-700 shadow-xl flex items-center justify-center ${isGenerating ? 'animate-pulse' : ''}`}>
+            <div
+              onClick={onNavigate}
+              className="relative w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center transition-transform duration-500 cursor-pointer hover:scale-110 group/icon"
+            >
+              <div className={`absolute inset-0 rounded-2xl bg-zinc-800 border border-zinc-700 shadow-xl flex items-center justify-center transition-all ${isGenerating ? 'animate-pulse' : 'group-hover/icon:border-green-500 group-hover/icon:bg-zinc-700'}`}>
                 {isGenerating ? (
                   <CurrencyDollarIcon className="w-8 h-8 md:w-10 md:h-10 text-green-400 animate-spin-slow" />
                 ) : (
-                  <ArrowUpTrayIcon className="w-8 h-8 md:w-10 md:h-10 text-zinc-300" />
+                  <ArrowUpTrayIcon className="w-8 h-8 md:w-10 md:h-10 text-zinc-300 group-hover/icon:text-green-400 transition-colors" />
                 )}
               </div>
             </div>
