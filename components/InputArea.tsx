@@ -43,7 +43,13 @@ const CyclingText = () => {
   );
 };
 
-export const InputArea: React.FC<InputAreaProps> = ({ isGenerating = false, onNavigate }) => {
+export const InputArea: React.FC<InputAreaProps> = ({ isGenerating = false, onNavigate, disabled = false }) => {
+  const handleClick = () => {
+    if (!disabled && onNavigate) {
+      onNavigate();
+    }
+  };
+
   return (
     <div className="w-full max-w-4xl mx-auto perspective-1000">
       <div className="relative group transition-all duration-300">
@@ -71,8 +77,8 @@ export const InputArea: React.FC<InputAreaProps> = ({ isGenerating = false, onNa
 
           <div className="relative z-10 flex flex-col items-center text-center space-y-6 md:space-y-8 p-6 md:p-8 w-full">
             <div
-              onClick={onNavigate}
-              className="relative w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center transition-transform duration-500 cursor-pointer hover:scale-110 group/icon"
+              onClick={handleClick}
+              className={`relative w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center transition-transform duration-500 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:scale-110'} group/icon`}
             >
               <div className={`absolute inset-0 rounded-2xl bg-zinc-800 border border-zinc-700 shadow-xl flex items-center justify-center transition-all ${isGenerating ? 'animate-pulse' : 'group-hover/icon:border-green-500 group-hover/icon:bg-zinc-700'}`}>
                 {isGenerating ? (
