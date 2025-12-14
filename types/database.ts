@@ -20,21 +20,46 @@ export interface IdeaListing {
     idea_id: string;
     user_id: string;
 
-    // Idea Info (Step 1)
+    // Page 1: Idea Info
     title: string;
-    one_line_description: string; // "Short Description"
-    category: string; // Primary
+    one_line_description: string;
+    category: string;
     secondary_category?: string;
 
-    // Narrative Sections (Arrays for lists, Strings for paragraphs)
-    customer_pain?: string[]; // A. Numbered List
-    current_solutions?: string[]; // B. Numbered List
-    execution_steps?: string[]; // C. Numbered List
-    growth_plan?: string[]; // D. Numbered List
+    // Page 2: Customer Pain
+    pain_who?: string;
+    pain_problem?: string[];
+    pain_frequency?: string;
 
-    solution_details?: string; // E. Paragraph
-    revenue_plan?: string; // F. Paragraph
-    impact?: string; // G. Paragraph
+    // Page 3: Current Solutions
+    solution_current?: string[];
+    solution_insufficient?: string[];
+    solution_risks?: string;
+
+    // Page 4: Execution Steps
+    exec_steps?: string[];
+    exec_skills?: string[];
+    exec_risks?: string;
+
+    // Page 5: Growth Plan
+    growth_acquisition?: string[];
+    growth_drivers?: string;
+    growth_expansion?: string[];
+
+    // Page 6: Solution Details
+    sol_what?: string;
+    sol_how?: string;
+    sol_why_better?: string;
+
+    // Page 7: Revenue Plan
+    rev_who_pays?: string;
+    rev_flow?: string;
+    rev_retention?: string;
+
+    // Page 8: Impact
+    impact_who?: string;
+    impact_improvement?: string;
+    impact_scale?: string;
 
     price: number;
     document_url: string;
@@ -84,7 +109,7 @@ export interface MarketplaceView {
 }
 
 export interface IdeaDetailView {
-    idea_detail_id?: string; // View might not have ID column depending on implementation
+    idea_detail_id?: string;
     idea_id: string;
     user_id: string;
     ai_score_id: string;
@@ -99,14 +124,34 @@ export interface IdeaDetailView {
     category?: string;
     secondary_category?: string;
 
-    // New Narrative Fields
-    customer_pain?: string[];
-    current_solutions?: string[];
-    execution_steps?: string[];
-    growth_plan?: string[];
-    solution_details?: string;
-    revenue_plan?: string;
-    impact?: string;
+    // New Granular Fields
+    pain_who?: string;
+    pain_problem?: string[];
+    pain_frequency?: string;
+
+    solution_current?: string[];
+    solution_insufficient?: string[];
+    solution_risks?: string;
+
+    exec_steps?: string[];
+    exec_skills?: string[];
+    exec_risks?: string;
+
+    growth_acquisition?: string[];
+    growth_drivers?: string;
+    growth_expansion?: string[];
+
+    sol_what?: string;
+    sol_how?: string;
+    sol_why_better?: string;
+
+    rev_who_pays?: string;
+    rev_flow?: string;
+    rev_retention?: string;
+
+    impact_who?: string;
+    impact_improvement?: string;
+    impact_scale?: string;
 
     uniqueness: number;
     demand: DemandLevel;

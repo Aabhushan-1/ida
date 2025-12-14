@@ -5,21 +5,17 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
     ArrowLeftIcon,
-    DocumentPlusIcon,
     XMarkIcon,
     ChevronRightIcon,
     ChevronLeftIcon,
-    CheckCircleIcon as CheckCircleIconOutline
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid';
-import { analyzeAssetScores } from '../services/gemini';
-import { createIdeaListing, createAIScoring, uploadDocument, getIdeaDetails, updateIdeaListing, updateAIScoring } from '../services/database';
+import { createIdeaListing, createAIScoring, uploadDocument, getIdeaDetails, updateIdeaListing } from '../services/database';
 import { supabase } from '../services/supabase';
-import type { DemandLevel } from '../types/database';
-import { CATEGORIES } from '../constants/categories'; // Ensure this exists, otherwise use local array
+import { CATEGORIES } from '../constants/categories';
 import { ContentEditableList } from './ContentEditableList';
 
-// Local Categories Fallback if constant not found (assuming it is in ../constants/categories)
+// Local Categories Fallback
 const DEFAULT_CATEGORIES = [
     "Technology", "Finance", "Health", "Education", "Ecommerce",
     "Media & Content", "Real Estate", "Logistics", "Agriculture",
@@ -33,23 +29,10 @@ interface SellIdeaProps {
     onBack: () => void;
 }
 
-interface AIScores {
-    uniqueness: number;
-    demand: DemandLevel;
-    problem_impact: number;
-    profitability: {
-        estimatedRevenue: number;
-        estimatedProfit: number;
-        marginPercentage: number;
-    };
-    viability: number;
-    scalability: number;
-}
-
 // --- Reusable Form Components ---
 
 const Label = ({ children }: { children?: React.ReactNode }) => (
-    <label className="block text-sm font-medium text-zinc-400 mb-3 uppercase tracking-wider text-[11px] font-mono">
+    <label className="block text-sm font-medium text-zinc-400 mb-2 uppercase tracking-wider text-[11px] font-mono">
         {children}
     </label>
 );
@@ -65,7 +48,7 @@ const Input = ({ value, onChange, placeholder, maxLength, type = "text" }: any) 
     />
 );
 
-const TextArea = ({ value, onChange, placeholder, rows = 4 }: any) => (
+const TextArea = ({ value, onChange, placeholder, rows = 3 }: any) => (
     <textarea
         value={value}
         onChange={onChange}
@@ -76,8 +59,6 @@ const TextArea = ({ value, onChange, placeholder, rows = 4 }: any) => (
 );
 
 const Select = ({ value, onChange, options, placeholder = "Choose an option" }: { value: string, onChange: (val: string) => void, options: string[], placeholder?: string }) => {
-    // Simple native select for robustness in this large refactor, or custom if preferred. 
-    // Using the custom one I built earlier.
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -149,9 +130,12 @@ const Select = ({ value, onChange, options, placeholder = "Choose an option" }: 
 };
 
 export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
-    // --- State ---
     const [editId, setEditId] = useState<string | null>(null);
     const [isLoadingData, setIsLoadingData] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+
+    // --- State: V4 Granular Schema ---
 
     // Step 1: Idea Info
     const [title, setTitle] = useState('');
@@ -159,41 +143,47 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
     const [primaryCategory, setPrimaryCategory] = useState('');
     const [secondaryCategory, setSecondaryCategory] = useState('');
 
-    // Step 2: Customer Pain (A)
-    const [customerPain, setCustomerPain] = useState<string[]>(['']);
+    // Step 2: Customer Pain
+    const [painWho, setPainWho] = useState(''); // Para
+    const [painProblem, setPainProblem] = useState<string[]>(['']); // List
+    const [painFrequency, setPainFrequency] = useState(''); // Para
 
-    // Step 3: Current Solutions (B)
-    const [currentSolutions, setCurrentSolutions] = useState<string[]>(['']);
+    // Step 3: Current Solutions
+    const [solutionCurrent, setSolutionCurrent] = useState<string[]>(['']); // List
+    const [solutionInsufficient, setSolutionInsufficient] = useState<string[]>(['']); // List
+    const [solutionRisks, setSolutionRisks] = useState(''); // Para
 
-    // Step 4: Execution Steps (C)
-    const [executionSteps, setExecutionSteps] = useState<string[]>(['']);
+    // Step 4: Execution Steps
+    const [execSteps, setExecSteps] = useState<string[]>(['']); // List
+    const [execSkills, setExecSkills] = useState<string[]>(['']); // List
+    const [execRisks, setExecRisks] = useState(''); // Para
 
-    // Step 5: Growth Plan (D)
-    const [growthPlan, setGrowthPlan] = useState<string[]>(['']);
+    // Step 5: Growth Plan
+    const [growthAcquisition, setGrowthAcquisition] = useState<string[]>(['']); // List
+    const [growthDrivers, setGrowthDrivers] = useState(''); // Para
+    const [growthExpansion, setGrowthExpansion] = useState<string[]>(['']); // List
 
-    // Step 6: Solution Details (E)
-    // "ContentEditable lists for some and paragraphs for others" -> Solution Details is Paragraph
-    const [solutionDetails, setSolutionDetails] = useState('');
+    // Step 6: Solution Details
+    const [solWhat, setSolWhat] = useState(''); // Para
+    const [solHow, setSolHow] = useState(''); // Para
+    const [solWhyBetter, setSolWhyBetter] = useState(''); // Para
 
-    // Step 7: Revenue Plan (F) -> Paragraph
-    const [revenuePlan, setRevenuePlan] = useState('');
+    // Step 7: Revenue Plan
+    const [revWhoPays, setRevWhoPays] = useState(''); // Para
+    const [revFlow, setRevFlow] = useState(''); // Para
+    const [revRetention, setRevRetention] = useState(''); // Para
 
-    // Step 8: Impact (G) -> Paragraph
-    const [impact, setImpact] = useState('');
+    // Step 8: Impact
+    const [impactWho, setImpactWho] = useState(''); // Para
+    const [impactImprovement, setImpactImprovement] = useState(''); // Para
+    const [impactScale, setImpactScale] = useState(''); // Para
 
-    // Step 9: Documents & Price
+    // Step 9: Finalize
     const [price, setPrice] = useState('');
     const [mainDocument, setMainDocument] = useState<File | null>(null);
     const [existingMainDocUrl, setExistingMainDocUrl] = useState<string | null>(null);
     const [additionalDocuments, setAdditionalDocuments] = useState<File[]>([]);
     const [existingAdditionalDocs, setExistingAdditionalDocs] = useState<string[]>([]);
-
-    // AI & Meta
-    const [scores, setScores] = useState<AIScores | null>(null);
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [submitError, setSubmitError] = useState<string | null>(null);
-    const [touched, setTouched] = useState(false);
 
     // Navigation
     const [currentStep, setCurrentStep] = useState(1);
@@ -201,13 +191,13 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
 
     const stepTitles = [
         "Idea Info",
-        "Customer Pain Narrative", // A
-        "Current Solutions Narrative", // B
-        "Execution Steps Narrative", // C
-        "Growth Plan Narrative", // D
-        "Solution Narrative", // E
-        "Revenue Narrative", // F
-        "Impact Narrative", // G
+        "Customer Pain",
+        "Current Solutions",
+        "Execution Steps",
+        "Growth Plan",
+        "Solution Details",
+        "Revenue Plan",
+        "Impact",
         "Finalize Listing"
     ];
 
@@ -233,23 +223,37 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
             setPrimaryCategory(data.category || '');
             setSecondaryCategory(data.secondary_category || '');
 
-            setCustomerPain(data.customer_pain || ['']);
-            setCurrentSolutions(data.current_solutions || ['']);
-            setExecutionSteps(data.execution_steps || ['']);
-            setGrowthPlan(data.growth_plan || ['']);
+            // V4 Fields
+            setPainWho(data.pain_who || '');
+            setPainProblem(data.pain_problem || ['']);
+            setPainFrequency(data.pain_frequency || '');
 
-            setSolutionDetails(data.solution_details || '');
-            setRevenuePlan(data.revenue_plan || '');
-            setImpact(data.impact || '');
+            setSolutionCurrent(data.solution_current || ['']);
+            setSolutionInsufficient(data.solution_insufficient || ['']);
+            setSolutionRisks(data.solution_risks || '');
+
+            setExecSteps(data.exec_steps || ['']);
+            setExecSkills(data.exec_skills || ['']);
+            setExecRisks(data.exec_risks || '');
+
+            setGrowthAcquisition(data.growth_acquisition || ['']);
+            setGrowthDrivers(data.growth_drivers || '');
+            setGrowthExpansion(data.growth_expansion || ['']);
+
+            setSolWhat(data.sol_what || '');
+            setSolHow(data.sol_how || '');
+            setSolWhyBetter(data.sol_why_better || '');
+
+            setRevWhoPays(data.rev_who_pays || '');
+            setRevFlow(data.rev_flow || '');
+            setRevRetention(data.rev_retention || '');
+
+            setImpactWho(data.impact_who || '');
+            setImpactImprovement(data.impact_improvement || '');
+            setImpactScale(data.impact_scale || '');
 
             setPrice(data.price.toString());
             setExistingMainDocUrl(data.document_url);
-
-            // Legacy Mappings (Cast data to any to access removed fields safely)
-            const legacyData = data as any;
-            if (!data.customer_pain && legacyData.problem_description) setCustomerPain([legacyData.problem_description]);
-            if (!data.solution_details && legacyData.solution_summary) setSolutionDetails(legacyData.solution_summary);
-            // ... add more if acceptable defaults exist
 
             const extraDocs = [data.additional_doc_1, data.additional_doc_2, data.additional_doc_3].filter(Boolean) as string[];
             setExistingAdditionalDocs(extraDocs);
@@ -263,11 +267,7 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
     };
 
     // --- Validation ---
-
-    // Helper to check valid list (at least one non-empty string)
     const isListValid = (list: string[]) => list.length > 0 && list.some(item => item.trim().length > 0);
-
-    // Ensure mutable string array for Select
     const industryOptions = [...INDUSTRIES];
 
     const isStepValid = useMemo(() => {
@@ -276,20 +276,20 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                 return title.trim().length > 0 &&
                     shortDescription.trim().length > 0 &&
                     primaryCategory !== '';
-            case 2: // A. Pain
-                return isListValid(customerPain);
-            case 3: // B. Solutions
-                return isListValid(currentSolutions);
-            case 4: // C. Execution
-                return isListValid(executionSteps);
-            case 5: // D. Growth
-                return isListValid(growthPlan);
-            case 6: // E. Solution
-                return solutionDetails.trim().length > 0;
-            case 7: // F. Revenue
-                return revenuePlan.trim().length > 0;
-            case 8: // G. Impact
-                return impact.trim().length > 0;
+            case 2: // Customer Pain
+                return painWho.trim() !== '' && isListValid(painProblem) && painFrequency.trim() !== '';
+            case 3: // Current Solutions
+                return isListValid(solutionCurrent) && isListValid(solutionInsufficient) && solutionRisks.trim() !== '';
+            case 4: // Execution Steps
+                return isListValid(execSteps) && isListValid(execSkills) && execRisks.trim() !== '';
+            case 5: // Growth Plan
+                return isListValid(growthAcquisition) && growthDrivers.trim() !== '' && isListValid(growthExpansion);
+            case 6: // Solution Details
+                return solWhat.trim() !== '' && solHow.trim() !== '' && solWhyBetter.trim() !== '';
+            case 7: // Revenue Plan
+                return revWhoPays.trim() !== '' && revFlow.trim() !== '' && revRetention.trim() !== '';
+            case 8: // Impact
+                return impactWho.trim() !== '' && impactImprovement.trim() !== '' && impactScale.trim() !== '';
             case 9: // Docs & Price
                 const hasDoc = (mainDocument !== null || existingMainDocUrl !== null);
                 const validPrice = !isNaN(parseFloat(price)) && parseFloat(price) > 0;
@@ -297,7 +297,17 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
             default:
                 return true;
         }
-    }, [currentStep, title, shortDescription, primaryCategory, customerPain, currentSolutions, executionSteps, growthPlan, solutionDetails, revenuePlan, impact, mainDocument, existingMainDocUrl, price]);
+    }, [
+        currentStep, title, shortDescription, primaryCategory,
+        painWho, painProblem, painFrequency,
+        solutionCurrent, solutionInsufficient, solutionRisks,
+        execSteps, execSkills, execRisks,
+        growthAcquisition, growthDrivers, growthExpansion,
+        solWhat, solHow, solWhyBetter,
+        revWhoPays, revFlow, revRetention,
+        impactWho, impactImprovement, impactScale,
+        mainDocument, existingMainDocUrl, price
+    ]);
 
     // --- Handlers ---
 
@@ -316,7 +326,6 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
     };
 
     const handleSubmit = async () => {
-        setTouched(true);
         if (!isStepValid) return;
 
         setIsSubmitting(true);
@@ -339,21 +348,40 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                 additionalDocUrls.push(data!.url);
             }
 
-            // 2. Prepare Payload
+            // 2. Prepare Payload (V4 Schema)
             const listingData: any = {
                 title,
                 one_line_description: shortDescription,
                 category: primaryCategory,
                 secondary_category: secondaryCategory || null,
 
-                customer_pain: customerPain.filter(s => s.trim()),
-                current_solutions: currentSolutions.filter(s => s.trim()),
-                execution_steps: executionSteps.filter(s => s.trim()),
-                growth_plan: growthPlan.filter(s => s.trim()),
+                pain_who: painWho,
+                pain_problem: painProblem.filter(s => s.trim()),
+                pain_frequency: painFrequency,
 
-                solution_details: solutionDetails,
-                revenue_plan: revenuePlan,
-                impact: impact,
+                solution_current: solutionCurrent.filter(s => s.trim()),
+                solution_insufficient: solutionInsufficient.filter(s => s.trim()),
+                solution_risks: solutionRisks,
+
+                exec_steps: execSteps.filter(s => s.trim()),
+                exec_skills: execSkills.filter(s => s.trim()),
+                exec_risks: execRisks,
+
+                growth_acquisition: growthAcquisition.filter(s => s.trim()),
+                growth_drivers: growthDrivers,
+                growth_expansion: growthExpansion.filter(s => s.trim()),
+
+                sol_what: solWhat,
+                sol_how: solHow,
+                sol_why_better: solWhyBetter,
+
+                rev_who_pays: revWhoPays,
+                rev_flow: revFlow,
+                rev_retention: revRetention,
+
+                impact_who: impactWho,
+                impact_improvement: impactImprovement,
+                impact_scale: impactScale,
 
                 price: parseFloat(price),
                 document_url: mainDocUrl,
@@ -371,8 +399,6 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                 const { data: ideaData, error } = await createIdeaListing({ ...listingData, user_id: user.id });
                 if (error || !ideaData) throw error;
 
-                // Create minimal Score placeholder (since we removed old inputs driving custom scores)
-                // Or try to create a basic score entry
                 await createAIScoring({
                     idea_id: ideaData.idea_id,
                     uniqueness: 50,
@@ -447,16 +473,16 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                             </div>
                             <div>
                                 <Label>Short Description <span className="text-red-500">*</span></Label>
-                                <Input value={shortDescription} onChange={(e: any) => setShortDescription(e.target.value)} placeholder="One line elevator pitch" />
+                                <TextArea value={shortDescription} onChange={(e: any) => setShortDescription(e.target.value)} rows={4} placeholder="Elevator pitch description..." />
                             </div>
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div>
                                     <Label>Primary Category <span className="text-red-500">*</span></Label>
-                                    <Select value={primaryCategory} onChange={setPrimaryCategory} options={industryOptions} placeholder="Primary Category" />
+                                    <Select value={primaryCategory} onChange={setPrimaryCategory} options={industryOptions} placeholder="Primary" />
                                 </div>
                                 <div>
                                     <Label>Secondary Category</Label>
-                                    <Select value={secondaryCategory} onChange={setSecondaryCategory} options={industryOptions} placeholder="Secondary (Optional)" />
+                                    <Select value={secondaryCategory} onChange={setSecondaryCategory} options={industryOptions} placeholder="Secondary" />
                                 </div>
                             </div>
                         </div>
@@ -464,88 +490,127 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
 
                     {/* STEP 2: Customer Pain */}
                     {currentStep === 2 && (
-                        <div className="animate-in fade-in slide-in-from-right-4">
-                            <Label>Customer Pain Points (List) <span className="text-red-500">*</span></Label>
-                            <div className="mb-4 text-xs text-zinc-500">
-                                <p>• Who has this problem?</p>
-                                <p>• What exactly is the problem and how does it affect them?</p>
-                                <p>• How often does it happen?</p>
+                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                            <div>
+                                <Label>Who has this problem? (Paragraph)</Label>
+                                <TextArea value={painWho} onChange={(e: any) => setPainWho(e.target.value)} placeholder="Describe the target audience..." />
                             </div>
-                            <ContentEditableList items={customerPain} onChange={setCustomerPain} placeholder="Identify a specific pain point..." />
+                            <div>
+                                <Label>What exactly is the problem and how does it affect them? (List)</Label>
+                                <ContentEditableList items={painProblem} onChange={setPainProblem} placeholder="Pain point..." />
+                            </div>
+                            <div>
+                                <Label>How often does this problem occur? (Paragraph)</Label>
+                                <TextArea value={painFrequency} onChange={(e: any) => setPainFrequency(e.target.value)} placeholder="Frequency of the problem..." />
+                            </div>
                         </div>
                     )}
 
                     {/* STEP 3: Current Solutions */}
                     {currentStep === 3 && (
-                        <div className="animate-in fade-in slide-in-from-right-4">
-                            <Label>Current Solutions (List) <span className="text-red-500">*</span></Label>
-                            <div className="mb-4 text-xs text-zinc-500">
-                                <p>• How do people solve this today?</p>
-                                <p>• Why are these insufficient?</p>
-                                <p>• What frustrations remain?</p>
+                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                            <div>
+                                <Label>How do people solve this problem today? (List)</Label>
+                                <ContentEditableList items={solutionCurrent} onChange={setSolutionCurrent} placeholder="Current solution..." />
                             </div>
-                            <ContentEditableList items={currentSolutions} onChange={setCurrentSolutions} placeholder="Describe a current alternative..." />
+                            <div>
+                                <Label>Why are current solutions insufficient or unsatisfactory? (List)</Label>
+                                <ContentEditableList items={solutionInsufficient} onChange={setSolutionInsufficient} placeholder="Reason insufficient..." />
+                            </div>
+                            <div>
+                                <Label>What risks or limitations exist with current solutions? (Paragraph)</Label>
+                                <TextArea value={solutionRisks} onChange={(e: any) => setSolutionRisks(e.target.value)} placeholder="Risks involved..." />
+                            </div>
                         </div>
                     )}
 
                     {/* STEP 4: Execution Steps */}
                     {currentStep === 4 && (
-                        <div className="animate-in fade-in slide-in-from-right-4">
-                            <Label>Execution Steps (List) <span className="text-red-500">*</span></Label>
-                            <div className="mb-4 text-xs text-zinc-500">
-                                <p>• How to build v1?</p>
-                                <p>• Skills/resources required?</p>
-                                <p>• Hardest parts to execute?</p>
+                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                            <div>
+                                <Label>Steps to build the first usable version (List)</Label>
+                                <ContentEditableList items={execSteps} onChange={setExecSteps} placeholder="Step..." />
                             </div>
-                            <ContentEditableList items={executionSteps} onChange={setExecutionSteps} placeholder="Step 1: Build..." />
+                            <div>
+                                <Label>Skills, tools, or resources required (List)</Label>
+                                <ContentEditableList items={execSkills} onChange={setExecSkills} placeholder="Skill/Tool..." />
+                            </div>
+                            <div>
+                                <Label>Most difficult or risky parts of execution (Paragraph)</Label>
+                                <TextArea value={execRisks} onChange={(e: any) => setExecRisks(e.target.value)} placeholder="Execution risks..." />
+                            </div>
                         </div>
                     )}
 
                     {/* STEP 5: Growth Plan */}
                     {currentStep === 5 && (
-                        <div className="animate-in fade-in slide-in-from-right-4">
-                            <Label>Growth Plan (List) <span className="text-red-500">*</span></Label>
-                            <div className="mb-4 text-xs text-zinc-500">
-                                <p>• First 1,000 users strategy?</p>
-                                <p>• Expansion opportunities?</p>
+                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                            <div>
+                                <Label>How will the first users be acquired? (List)</Label>
+                                <ContentEditableList items={growthAcquisition} onChange={setGrowthAcquisition} placeholder="Acquisition channel..." />
                             </div>
-                            <ContentEditableList items={growthPlan} onChange={setGrowthPlan} placeholder="Growth strategy point..." />
+                            <div>
+                                <Label>What drives growth over time? (Paragraph)</Label>
+                                <TextArea value={growthDrivers} onChange={(e: any) => setGrowthDrivers(e.target.value)} placeholder="Growth drivers..." />
+                            </div>
+                            <div>
+                                <Label>Possible expansion paths (markets, features, users) (List)</Label>
+                                <ContentEditableList items={growthExpansion} onChange={setGrowthExpansion} placeholder="Expansion idea..." />
+                            </div>
                         </div>
                     )}
 
-                    {/* STEP 6: Solution Detail */}
+                    {/* STEP 6: Solution Details */}
                     {currentStep === 6 && (
-                        <div className="animate-in fade-in slide-in-from-right-4">
-                            <Label>Solution Detailed Description <span className="text-red-500">*</span></Label>
-                            <div className="mb-4 text-xs text-zinc-500">
-                                <p>• How does it work step-by-step?</p>
-                                <p>• Single biggest improvement?</p>
+                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                            <div>
+                                <Label>What is the solution? (Paragraph)</Label>
+                                <TextArea value={solWhat} onChange={(e: any) => setSolWhat(e.target.value)} placeholder="Describe the solution..." />
                             </div>
-                            <TextArea value={solutionDetails} onChange={(e: any) => setSolutionDetails(e.target.value)} rows={8} placeholder="Deep dive into your solution..." />
+                            <div>
+                                <Label>How does it work at a high level? (Paragraph)</Label>
+                                <TextArea value={solHow} onChange={(e: any) => setSolHow(e.target.value)} placeholder="Technical/Functional mechanism..." />
+                            </div>
+                            <div>
+                                <Label>Why is it better than existing solutions? (Paragraph)</Label>
+                                <TextArea value={solWhyBetter} onChange={(e: any) => setSolWhyBetter(e.target.value)} placeholder="Competitive advantage..." />
+                            </div>
                         </div>
                     )}
 
                     {/* STEP 7: Revenue Plan */}
                     {currentStep === 7 && (
-                        <div className="animate-in fade-in slide-in-from-right-4">
-                            <Label>Revenue Plan <span className="text-red-500">*</span></Label>
-                            <div className="mb-4 text-xs text-zinc-500">
-                                <p>• Who pays and for what?</p>
-                                <p>• Why would they continue paying?</p>
+                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                            <div>
+                                <Label>Who pays and why? (Paragraph)</Label>
+                                <TextArea value={revWhoPays} onChange={(e: any) => setRevWhoPays(e.target.value)} placeholder="Payer profile..." />
                             </div>
-                            <TextArea value={revenuePlan} onChange={(e: any) => setRevenuePlan(e.target.value)} rows={8} placeholder="Monetization strategy..." />
+                            <div>
+                                <Label>How does money flow into the business? (Paragraph)</Label>
+                                <TextArea value={revFlow} onChange={(e: any) => setRevFlow(e.target.value)} placeholder="Revenue mechanism..." />
+                            </div>
+                            <div>
+                                <Label>Why would customers keep paying? (Paragraph)</Label>
+                                <TextArea value={revRetention} onChange={(e: any) => setRevRetention(e.target.value)} placeholder="Retention factor..." />
+                            </div>
                         </div>
                     )}
 
                     {/* STEP 8: Impact */}
                     {currentStep === 8 && (
-                        <div className="animate-in fade-in slide-in-from-right-4">
-                            <Label>Impact <span className="text-red-500">*</span></Label>
-                            <div className="mb-4 text-xs text-zinc-500">
-                                <p>• Who benefits most?</p>
-                                <p>• Does this improve access, efficiency, safety?</p>
+                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                            <div>
+                                <Label>Who benefits the most from this idea? (Paragraph)</Label>
+                                <TextArea value={impactWho} onChange={(e: any) => setImpactWho(e.target.value)} placeholder="Primary beneficaries..." />
                             </div>
-                            <TextArea value={impact} onChange={(e: any) => setImpact(e.target.value)} rows={8} placeholder="Societal or market impact..." />
+                            <div>
+                                <Label>What real-world improvement does this create? (Paragraph)</Label>
+                                <TextArea value={impactImprovement} onChange={(e: any) => setImpactImprovement(e.target.value)} placeholder="Improvements..." />
+                            </div>
+                            <div>
+                                <Label>What changes if this succeeds at scale? (Paragraph)</Label>
+                                <TextArea value={impactScale} onChange={(e: any) => setImpactScale(e.target.value)} placeholder="Long term vision..." />
+                            </div>
                         </div>
                     )}
 

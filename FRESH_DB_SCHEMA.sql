@@ -1,72 +1,67 @@
 -- ==============================================================================
--- FRESH DATABASE SCHEMA SCRIPT
--- This script rebuilds the idea_listing table and related views to match the new
--- "Sell Your Idea" form requirements exactly.
+-- FRESH DATABASE SCHEMA SCRIPT (V4)
+-- This script rebuilds the idea_listing table and related views to match the 
+-- Granular 7-Section Analysis requirements exactly.
 -- ==============================================================================
 
 -- 1. Drop dependent views first to avoid dependency errors
 DROP VIEW IF EXISTS idea_detail_page;
 DROP VIEW IF EXISTS marketplace;
 
--- 2. Drop the main table (Cascade will handle FKs in likes/saves/ai_scoring if configured, 
---    but to be safe and clean, we fully recreate structure).
---    Recreating tables with CASCADE DROP ensures a truly fresh start for this table.
--- 3. Drop tables (Cascade will handle FKs, but explicit drops are safer for clean state)
+-- 2. Drop the main tables (Cascade will handle FKs)
 DROP TABLE IF EXISTS "idea_listing" CASCADE;
 DROP TABLE IF EXISTS "ai_scoring" CASCADE;
 
--- 4. Create the new idea_listing table
+-- 3. Create the new idea_listing table
 CREATE TABLE idea_listing (
     idea_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES auth.users(id) NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     
-    -- Idea Snapshot
+    -- Page 1: Idea Info
     title TEXT NOT NULL,
     one_line_description TEXT NOT NULL,
-    category TEXT NOT NULL, -- "Industry / Category"
-    target_customer_type TEXT,
-    stage TEXT,
+    category TEXT NOT NULL, 
+    secondary_category TEXT,
 
-    -- Problem & Urgency
-    problem_description TEXT,
-    who_faces_problem TEXT,
-    pain_level INTEGER, -- 1-5
-    urgency_level TEXT,
-    current_alternatives TEXT,
+    -- Page 2: Customer Pain
+    pain_who TEXT,
+    pain_problem TEXT[],
+    pain_frequency TEXT,
 
-    -- Solution & Advantage
-    solution_summary TEXT,
-    primary_advantage TEXT,
-    differentiation_strength INTEGER, -- 1-5
+    -- Page 3: Current Solutions
+    solution_current TEXT[],
+    solution_insufficient TEXT[],
+    solution_risks TEXT,
 
-    -- Market Potential
-    market_size TEXT,
-    market_growth_trend TEXT,
-    geographic_scope TEXT,
+    -- Page 4: Execution Steps
+    exec_steps TEXT[],
+    exec_skills TEXT[],
+    exec_risks TEXT,
 
-    -- Revenue Model
-    revenue_model_type TEXT,
-    expected_price_per_customer TEXT,
-    cost_intensity TEXT,
+    -- Page 5: Growth Plan
+    growth_acquisition TEXT[],
+    growth_drivers TEXT,
+    growth_expansion TEXT[],
 
-    -- Execution Difficulty
-    build_difficulty TEXT,
-    time_to_first_version TEXT,
-    regulatory_dependency TEXT,
+    -- Page 6: Solution Details
+    sol_what TEXT,
+    sol_how TEXT,
+    sol_why_better TEXT,
 
-    -- Validation
-    validation_level TEXT,
-    validation_notes TEXT,
+    -- Page 7: Revenue Plan
+    rev_who_pays TEXT,
+    rev_flow TEXT,
+    rev_retention TEXT,
 
-    -- Sale & Rights
-    what_is_included TEXT,
-    buyer_resale_rights TEXT,
-    exclusivity TEXT,
+    -- Page 8: Impact
+    impact_who TEXT,
+    impact_improvement TEXT,
+    impact_scale TEXT,
+
+    -- Documents & Price
     price NUMERIC NOT NULL,
-
-    -- Documents
     document_url TEXT NOT NULL, -- Primary Prospectus
     additional_doc_1 TEXT,
     additional_doc_2 TEXT,
@@ -122,55 +117,66 @@ CREATE POLICY "Users can update AI scores" ON ai_scoring FOR UPDATE USING (true)
 
 -- 7. Recreate Views
 
--- Marketplace View: Used for the card grid.
--- We map 'one_line_description' to 'description' for the card view compatibility.
+-- Marketplace View
 CREATE OR REPLACE VIEW marketplace AS
 SELECT 
     i.idea_id as marketplace_id,
     i.idea_id,
     i.title,
-    i.one_line_description as description, -- Using brief description for cards
+    i.one_line_description as description, 
     i.category,
+    i.secondary_category, -- Added
     i.price,
     i.user_id,
-    u.username, -- Added username
+    u.username,
     i.created_at,
-    i.document_url, -- Used for thumbnails if we generate them, or placeholders
+    i.document_url, 
     -- AI Scores
     s.ai_score_id,
     COALESCE(s.overall_score, 0) as overall_score,
     COALESCE(s.uniqueness, 0) as uniqueness,
     COALESCE(s.viability, 0) as viability,
     COALESCE(s.profitability, 'N/A') as profitability,
-    
-    -- MVP flag (derived from Stage for compatibility, or just hardcoded false if using stage)
-    CASE WHEN i.stage = 'MVP built' OR i.stage = 'Revenue generating' THEN true ELSE false END as mvp
+    false as mvp
     
 FROM idea_listing i
 LEFT JOIN ai_scoring s ON i.idea_id = s.idea_id
 LEFT JOIN user_info u ON i.user_id::text = u.user_id::text;
 
 
--- Idea Detail View: Used for the details page.
--- Selects ALL columns.
+-- Idea Detail View
 CREATE OR REPLACE VIEW idea_detail_page AS
 SELECT 
-    i.*,
+    i.idea_id,
+    i.user_id,
+    i.created_at,
+    i.updated_at,
+    -- Core Info
+    i.title,
+    i.one_line_description,
+    i.category,
+    i.secondary_category,
+    i.price,
+    i.document_url,
+    i.additional_doc_1, i.additional_doc_2, i.additional_doc_3,
+    
+    -- Granular Fields
+    i.pain_who, i.pain_problem, i.pain_frequency,
+    i.solution_current, i.solution_insufficient, i.solution_risks,
+    i.exec_steps, i.exec_skills, i.exec_risks,
+    i.growth_acquisition, i.growth_drivers, i.growth_expansion,
+    i.sol_what, i.sol_how, i.sol_why_better,
+    i.rev_who_pays, i.rev_flow, i.rev_retention,
+    i.impact_who, i.impact_improvement, i.impact_scale,
+
     u.username,
     u.profile_picture,
     s.ai_score_id,
-    s.overall_score,
-    s.uniqueness,
-    s.demand,
-    s.problem_impact,
-    s.profitability,
-    s.viability,
-    s.scalability,
+    s.overall_score, s.uniqueness, s.demand, s.problem_impact, s.profitability, s.viability, s.scalability,
     
-    -- Compat fields if frontend calls them 'description' or 'mvp'
-    i.one_line_description as description, -- Or solution_summary? Let's use one_line for "Main" description header if mapped
-    CASE WHEN i.stage = 'MVP built' OR i.stage = 'Revenue generating' THEN true ELSE false END as mvp
+    i.one_line_description as description,
+    false as mvp
     
 FROM idea_listing i
-LEFT JOIN user_info u ON i.user_id::text = u.user_id
+LEFT JOIN user_info u ON i.user_id::text = u.user_id::text
 LEFT JOIN ai_scoring s ON i.idea_id = s.idea_id;

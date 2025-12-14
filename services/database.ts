@@ -553,7 +553,7 @@ export async function getUserListings(userId: string): Promise<{ data: Marketpla
             profitability: scoreData?.profitability || 'N/A',
             category: item.category,
             secondary_category: item.secondary_category,
-            mvp: false, // Legacy 'stage' field removed. Defaulting to false for V3 listings.
+            mvp: false,
             document_url: item.document_url,
             price: item.price,
             username: '',
