@@ -129,6 +129,22 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
     const mvpMediaInputRef = useRef<HTMLInputElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+    // --- Wizard State ---
+    const [currentStep, setCurrentStep] = useState(1);
+    const TOTAL_STEPS = 9;
+
+    const steps = [
+        "Idea Snapshot",
+        "Problem & Urgency",
+        "Solution & Advantage",
+        "Market Potential",
+        "Revenue Model",
+        "Execution Difficulty",
+        "Validation",
+        "Sale & Rights",
+        "Supporting Documents"
+    ];
+
     // --- Effects ---
 
     // Check for Edit Mode
@@ -548,6 +564,38 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
         }
     };
 
+    // --- Wizard Handlers ---
+
+    const isStepValid = useMemo(() => {
+        switch (currentStep) {
+            case 1: // Snapshot
+                return title.trim().length > 0 && oneLineDescription.trim().length > 0;
+            case 2: // Problem
+                return problemDescription.trim().length > 0;
+            case 3: // Solution
+                return solutionSummary.trim().length > 0;
+            case 9: // Documents
+                // valid if existing OR new
+                return (mainDocument !== null || existingMainDocUrl !== null);
+            default:
+                return true;
+        }
+    }, [currentStep, title, oneLineDescription, problemDescription, solutionSummary, mainDocument, existingMainDocUrl]);
+
+    const handleNext = () => {
+        if (currentStep < TOTAL_STEPS && isStepValid) {
+            setCurrentStep(prev => prev + 1);
+            window.scrollTo(0, 0);
+        }
+    };
+
+    const handleBack = () => {
+        if (currentStep > 1) {
+            setCurrentStep(prev => prev - 1);
+            window.scrollTo(0, 0);
+        }
+    };
+
     // --- Helper Components ---
     const CircularScore = ({ label, value }: { label: string, value: number }) => {
         // ... existing implementation
@@ -583,19 +631,29 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                 <span className="text-sm font-medium">Cancel</span>
             </button>
 
-            <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/5 rounded-2xl p-6 md:p-10 shadow-2xl">
-                <h1 className="text-3xl font-bold text-white mb-2">{editId ? 'Edit Listing' : 'Sell Your Idea'}</h1>
-                <p className="text-zinc-400 mb-8">{editId ? 'Update your listing details.' : 'List your business concept, IP, or validated startup for sale.'}</p>
+            <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/5 rounded-2xl p-6 md:p-10 shadow-2xl min-h-[600px] flex flex-col">
+                <div className="flex justify-between items-center mb-6">
+                    <div>
+                        <h1 className="text-3xl font-bold text-white mb-2">{editId ? 'Edit Listing' : 'Sell Your Idea'}</h1>
+                        <p className="text-zinc-400">Step {currentStep} of {TOTAL_STEPS}: <span className="text-white font-medium">{steps[currentStep - 1]}</span></p>
+                    </div>
+                    {/* Simple Progress Bar */}
+                    <div className="hidden md:flex gap-1">
+                        {steps.map((_, i) => (
+                            <div key={i} className={`h-1 w-8 rounded-full ${i + 1 <= currentStep ? 'bg-green-500' : 'bg-zinc-800'}`} />
+                        ))}
+                    </div>
+                </div>
 
                 {submitError && (
                     <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6 text-red-500 text-sm">{submitError}</div>
                 )}
 
-                <div className="space-y-8">
-                    <div className="space-y-12">
+                <div className="flex-grow space-y-8">
 
-                        {/* 1. Idea Snapshot */}
-                        <div className="space-y-6 border-b border-zinc-800 pb-8">
+                    {/* 1. Idea Snapshot */}
+                    {currentStep === 1 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                             <h2 className="text-xl font-bold text-white">Idea Snapshot</h2>
 
                             <div className="grid md:grid-cols-1 gap-6">
@@ -630,9 +688,11 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                                 </div>
                             </div>
                         </div>
+                    )}
 
-                        {/* 2. Problem & Urgency */}
-                        <div className="space-y-6 border-b border-zinc-800 pb-8">
+                    {/* 2. Problem & Urgency */}
+                    {currentStep === 2 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                             <h2 className="text-xl font-bold text-white">Problem & Urgency</h2>
 
                             <div>
@@ -666,9 +726,11 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                                 <input type="text" value={currentAlternatives} onChange={(e) => setCurrentAlternatives(e.target.value)} className="w-full bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none" placeholder="How do people solve this now?" />
                             </div>
                         </div>
+                    )}
 
-                        {/* 3. Solution & Advantage */}
-                        <div className="space-y-6 border-b border-zinc-800 pb-8">
+                    {/* 3. Solution & Advantage */}
+                    {currentStep === 3 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                             <h2 className="text-xl font-bold text-white">Solution & Advantage</h2>
 
                             <div>
@@ -693,9 +755,11 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                                 </div>
                             </div>
                         </div>
+                    )}
 
-                        {/* 4. Market Potential */}
-                        <div className="space-y-6 border-b border-zinc-800 pb-8">
+                    {/* 4. Market Potential */}
+                    {currentStep === 4 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                             <h2 className="text-xl font-bold text-white">Market Potential (Rough)</h2>
                             <div className="grid md:grid-cols-3 gap-6">
                                 <div>
@@ -718,9 +782,11 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                                 </div>
                             </div>
                         </div>
+                    )}
 
-                        {/* 5. Revenue Model */}
-                        <div className="space-y-6 border-b border-zinc-800 pb-8">
+                    {/* 5. Revenue Model */}
+                    {currentStep === 5 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                             <h2 className="text-xl font-bold text-white">Revenue Model</h2>
                             <div className="grid md:grid-cols-3 gap-6">
                                 <div>
@@ -743,9 +809,11 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                                 </div>
                             </div>
                         </div>
+                    )}
 
-                        {/* 6. Execution Difficulty */}
-                        <div className="space-y-6 border-b border-zinc-800 pb-8">
+                    {/* 6. Execution Difficulty */}
+                    {currentStep === 6 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                             <h2 className="text-xl font-bold text-white">Execution Difficulty</h2>
                             <div className="grid md:grid-cols-3 gap-6">
                                 <div>
@@ -768,9 +836,11 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                                 </div>
                             </div>
                         </div>
+                    )}
 
-                        {/* 7. Validation */}
-                        <div className="space-y-6 border-b border-zinc-800 pb-8">
+                    {/* 7. Validation */}
+                    {currentStep === 7 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                             <h2 className="text-xl font-bold text-white">Validation (Optional but Weighted)</h2>
                             <div className="grid md:grid-cols-1 gap-6">
                                 <div>
@@ -785,9 +855,11 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                                 </div>
                             </div>
                         </div>
+                    )}
 
-                        {/* 8. Sale & Rights */}
-                        <div className="space-y-6 border-b border-zinc-800 pb-8">
+                    {/* 8. Sale & Rights */}
+                    {currentStep === 8 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                             <h2 className="text-xl font-bold text-white">Sale & Rights</h2>
                             <div className="grid md:grid-cols-3 gap-6">
                                 <div>
@@ -815,9 +887,11 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                                 <p className="text-xs text-zinc-500 mt-1">Limit: ${maxPriceLimit}</p>
                             </div>
                         </div>
+                    )}
 
-                        {/* 9. Supporting Documents */}
-                        <div className="border-b border-zinc-800 pb-8">
+                    {/* 9. Supporting Documents */}
+                    {currentStep === 9 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                             <h2 className="text-xl font-bold text-white mb-6">Supporting Documents</h2>
                             <div className={`border rounded-xl p-6 bg-zinc-950/30 ${touched && !mainDocument && !existingMainDocUrl ? 'border-red-500/50' : 'border-zinc-800'}`}>
                                 <h3 className="text-lg font-medium text-white mb-4">Primary Document <span className="text-red-500">*</span></h3>
@@ -865,25 +939,52 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                                     <input type="file" ref={additionalFileInputRef} className="hidden" accept="application/pdf" multiple onChange={handleAdditionalDocsUpload} />
                                 </div>
                             </div>
-                        </div>
 
-                        {/* 10. AI-metrics */}
-                        {scores && (
-                            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-                                <h2 className="text-xl font-bold text-white mb-4">AI Metrics</h2>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <CircularScore label="Uniqueness" value={scores.uniqueness} />
-                                    <CircularScore label="Viability" value={scores.viability} />
-                                    <CircularScore label="Scalability" value={scores.scalability} />
-                                    <CircularScore label="Impact" value={scores.problem_impact} />
+                            {/* AI Metrics - Shown in review or edit mode? User asked for 9 sections ending here. 
+                                  If scores exist, we might want to show them. Let's keep them here for now validation/review. */}
+                            {scores && (
+                                <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 mt-8">
+                                    <h2 className="text-xl font-bold text-white mb-4">AI Metrics</h2>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <CircularScore label="Uniqueness" value={scores.uniqueness} />
+                                        <CircularScore label="Viability" value={scores.viability} />
+                                        <CircularScore label="Scalability" value={scores.scalability} />
+                                        <CircularScore label="Impact" value={scores.problem_impact} />
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
+                    )}
 
-                        <button onClick={handleSubmit} disabled={isSubmitting || !formValid} className={`w-full py-4 rounded-xl font-bold flex justify-center items-center gap-2 ${formValid && !isSubmitting ? 'bg-green-500 text-black' : 'bg-zinc-800 text-zinc-500'}`}>
+                </div>
+
+                {/* Navigation Footer */}
+                <div className="mt-12 flex justify-between pt-6 border-t border-zinc-800">
+                    <button
+                        onClick={handleBack}
+                        disabled={currentStep === 1}
+                        className={`px-6 py-3 rounded-xl font-medium flex items-center gap-2 ${currentStep === 1 ? 'text-zinc-600 cursor-not-allowed' : 'text-zinc-300 hover:text-white hover:bg-zinc-800'}`}
+                    >
+                        Back
+                    </button>
+
+                    {currentStep < TOTAL_STEPS ? (
+                        <button
+                            onClick={handleNext}
+                            disabled={!isStepValid}
+                            className={`px-8 py-3 rounded-xl font-bold transition-all ${isStepValid ? 'bg-white text-black hover:bg-zinc-200' : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'}`}
+                        >
+                            Next
+                        </button>
+                    ) : (
+                        <button
+                            onClick={handleSubmit}
+                            disabled={isSubmitting || !formValid}
+                            className={`px-8 py-3 rounded-xl font-bold flex items-center gap-2 ${formValid && !isSubmitting ? 'bg-green-500 text-black hover:bg-green-400' : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'}`}
+                        >
                             {isSubmitting ? 'Processing...' : (editId ? 'Update Listing' : 'Publish Listing')}
                         </button>
-                    </div>
+                    )}
                 </div>
             </div>
         </div>
