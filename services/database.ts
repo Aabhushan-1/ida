@@ -129,7 +129,7 @@ export async function ensureUserInfoExists(user: any): Promise<void> {
     }
 }
 
-export async function updateUserUsername(userId: string, newUsername: string): Promise<{ data: UserInfo | null; error: any }> {
+export async function updateUserProfile(userId: string, newUsername: string, newFullName: string): Promise<{ data: UserInfo | null; error: any }> {
     try {
         // Ensure username starts with @ and is lowercase
         let username = newUsername.toLowerCase();
@@ -145,7 +145,8 @@ export async function updateUserUsername(userId: string, newUsername: string): P
             };
         }
 
-        // Check if username is already taken by another user
+        // Check if username is already taken by another user (only if it changed)
+        // Optimization: checking if changed first would be good, but for now we just check existence
         const { data: existingUser } = await supabase
             .from('user_info')
             .select('user_id')
@@ -159,10 +160,14 @@ export async function updateUserUsername(userId: string, newUsername: string): P
             };
         }
 
-        // Update the username
+        // Update the profile (username and full_name)
         const { data, error } = await supabase
             .from('user_info')
-            .update({ username, updated_at: new Date().toISOString() })
+            .update({
+                username: username,
+                full_name: newFullName,
+                updated_at: new Date().toISOString()
+            })
             .eq('user_id', userId)
             .select()
             .single();

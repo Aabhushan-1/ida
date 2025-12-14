@@ -4,7 +4,7 @@ import { NavBar } from '../../components/NavBar';
 import { Footer } from '../../components/Footer';
 import { useAuthUser } from '../hooks/useAuthUser';
 import { supabase } from '../../services/supabase';
-import { getUserInfoById, updateUserUsername, updateUserProfilePicture, uploadDocument, getUserLikedListings, getUserSavedListings, getUserListings } from '../../services/database';
+import { getUserInfoById, updateUserProfile, updateUserProfilePicture, uploadDocument, getUserLikedListings, getUserSavedListings, getUserListings } from '../../services/database';
 import type { UserInfo, MarketplaceView } from '../../types/database';
 import { EnvelopeIcon, CameraIcon, HeartIcon, BookmarkIcon, ArrowRightIcon, ShoppingBagIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 import { handleNavigation } from '../utils/navigation';
@@ -15,6 +15,7 @@ const ProfilePage = () => {
     const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [editUsername, setEditUsername] = useState('');
+    const [editName, setEditName] = useState('');
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isUploadingPicture, setIsUploadingPicture] = useState(false);
@@ -72,6 +73,7 @@ const ProfilePage = () => {
             if (data) {
                 setUserInfo(data);
                 params_username_hack(data.username);
+                params_name_hack(data.full_name || data.username || '');
             } else {
                 setMessage({ type: 'error', text: 'User not found' });
             }
@@ -89,7 +91,8 @@ const ProfilePage = () => {
         }
     };
 
-    const params_username_hack = (name: string) => setEditUsername(name); // Helper to avoid lint if I used setEditUsername direct
+    const params_username_hack = (name: string) => setEditUsername(name);
+    const params_name_hack = (name: string) => setEditName(name);
 
     const fetchUserInfo = async () => {
         if (!user) return;
@@ -103,6 +106,7 @@ const ProfilePage = () => {
         } else if (data) {
             setUserInfo(data);
             setEditUsername(data.username);
+            setEditName(data.full_name || data.username || '');
         }
 
         // Load liked and saved ideas
@@ -221,7 +225,7 @@ const ProfilePage = () => {
         setMessage(null);
 
         try {
-            const { data, error } = await updateUserUsername(user.id, editUsername);
+            const { data, error } = await updateUserProfile(user.id, editUsername, editName);
 
             if (error) throw error;
 
@@ -328,14 +332,16 @@ const ProfilePage = () => {
                     {/* Form Fields */}
                     <div className="space-y-6">
 
-                        {/* Name (Full Name) - Read Only */}
+                        {/* Name (Full Name) - Editable */}
                         <div>
                             <label className="block text-xs font-semibold text-zinc-500 mb-2">Name</label>
                             <input
                                 type="text"
-                                value={userInfo.full_name || userInfo.username || ''}
-                                readOnly
-                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-zinc-400 focus:outline-none focus:border-zinc-700 transition-colors cursor-not-allowed"
+                                value={editName}
+                                readOnly={isPublicView}
+                                onChange={(e) => !isPublicView && setEditName(e.target.value)}
+                                className={`w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-zinc-700 transition-colors ${isPublicView ? 'cursor-not-allowed' : ''}`}
+                                placeholder="Enter your full name"
                             />
                         </div>
 
@@ -392,7 +398,7 @@ const ProfilePage = () => {
 
                         <button
                             onClick={handleSave}
-                            disabled={isSaving || editUsername === userInfo.username}
+                            disabled={isSaving || (editUsername === userInfo.username && editName === userInfo.full_name)}
                             className={`bg-white text-black text-sm font-semibold px-5 py-2 rounded-lg hover:bg-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isPublicView ? 'hidden' : ''}`}
                         >
                             {isSaving ? 'Saving...' : 'Save Changes'}
