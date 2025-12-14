@@ -424,6 +424,27 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
         }
     };
 
+    const handleAdditionalDocsUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const newFiles = Array.from(e.target.files);
+            const currentTotal = existingAdditionalDocs.length + additionalDocuments.length;
+
+            if (currentTotal + newFiles.length > 3) {
+                alert("You can only upload up to 3 additional documents in total.");
+                return;
+            }
+            setAdditionalDocuments(prev => [...prev, ...newFiles]);
+        }
+    };
+
+    const removeAdditionalDoc = (index: number) => {
+        setAdditionalDocuments(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const removeExistingAdditionalDoc = (index: number) => {
+        setExistingAdditionalDocs(prev => prev.filter((_, i) => i !== index));
+    };
+
     const handleMainDocUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             setMainDocument(e.target.files[0]);
@@ -630,6 +651,50 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                                     </div>
                                 ) : (
                                     <input type="file" onChange={handleMainDocUpload} accept=".pdf" className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-zinc-800 file:text-green-500 hover:file:bg-zinc-700" />
+                                )}
+                            </div>
+
+                            {/* Additional Documents */}
+                            <div>
+                                <Label>Additional Documents (Research Paper/Data collection etc)</Label>
+                                <p className="text-zinc-500 text-xs mb-3">up to 3 documents</p>
+
+                                <div className="space-y-3 mb-3">
+                                    {/* Existing Docs (Edit Mode) */}
+                                    {existingAdditionalDocs.map((url, index) => (
+                                        <div key={`existing-${index}`} className="flex items-center justify-between bg-zinc-800 p-3 rounded-lg border border-zinc-700">
+                                            <div className="flex items-center gap-2 overflow-hidden">
+                                                <span className="px-2 py-0.5 rounded text-[10px] bg-zinc-700 text-zinc-300 font-mono uppercase">Existing</span>
+                                                <span className="text-zinc-200 text-sm truncate block">Document {index + 1}</span>
+                                            </div>
+                                            <button onClick={() => removeExistingAdditionalDoc(index)} className="text-red-400 hover:text-red-300 p-1">
+                                                <XMarkIcon className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+
+                                    {/* New Docs */}
+                                    {additionalDocuments.map((file, index) => (
+                                        <div key={`new-${index}`} className="flex items-center justify-between bg-zinc-800 p-3 rounded-lg border border-zinc-700">
+                                            <div className="flex items-center gap-2 overflow-hidden">
+                                                <span className="px-2 py-0.5 rounded text-[10px] bg-green-500/10 text-green-500 border border-green-500/20 font-mono uppercase">New</span>
+                                                <span className="text-zinc-200 text-sm truncate block">{file.name}</span>
+                                            </div>
+                                            <button onClick={() => removeAdditionalDoc(index)} className="text-red-400 hover:text-red-300 p-1">
+                                                <XMarkIcon className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {(existingAdditionalDocs.length + additionalDocuments.length) < 3 && (
+                                    <input
+                                        type="file"
+                                        onChange={handleAdditionalDocsUpload}
+                                        accept=".pdf"
+                                        multiple
+                                        className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-zinc-800 file:text-green-500 hover:file:bg-zinc-700"
+                                    />
                                 )}
                             </div>
 
