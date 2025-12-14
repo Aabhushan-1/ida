@@ -315,7 +315,7 @@ const ProfilePage = () => {
                         </div>
 
                         <div>
-                            <h2 className="text-xl font-bold text-white leading-tight">{userInfo.name}</h2>
+                            <h2 className="text-xl font-bold text-white leading-tight">{userInfo.full_name || userInfo.username}</h2>
                             <p className="text-green-500 font-medium text-sm mt-0.5">@{editUsername.replace(/^@/, '').toLowerCase()}</p>
                             <div className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-green-900/30 text-green-400 mt-2 border border-green-900/50">
                                 Pro Member
@@ -333,7 +333,7 @@ const ProfilePage = () => {
                             <label className="block text-xs font-semibold text-zinc-500 mb-2">Name</label>
                             <input
                                 type="text"
-                                value={userInfo.name}
+                                value={userInfo.full_name || userInfo.username || ''}
                                 readOnly
                                 className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-zinc-400 focus:outline-none focus:border-zinc-700 transition-colors cursor-not-allowed"
                             />
@@ -348,7 +348,7 @@ const ProfilePage = () => {
                                 </div>
                                 <input
                                     type="email"
-                                    value={isPublicView ? 'Hidden (Private)' : userInfo.email}
+                                    value={isPublicView ? 'Hidden (Private)' : (user?.email || '')}
                                     readOnly
                                     className="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-10 pr-4 py-3 text-zinc-400 focus:outline-none focus:border-zinc-700 transition-colors cursor-not-allowed"
                                 />
