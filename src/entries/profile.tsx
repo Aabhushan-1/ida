@@ -354,9 +354,8 @@ const ProfilePage = () => {
                             <input
                                 type="text"
                                 value={editName}
-                                readOnly={isPublicView}
-                                onChange={(e) => !isPublicView && setEditName(e.target.value)}
-                                className={`w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-zinc-700 transition-colors ${isPublicView ? 'cursor-not-allowed' : ''}`}
+                                readOnly={true}
+                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-zinc-500 focus:outline-none border-transparent cursor-not-allowed"
                                 placeholder="Enter your full name"
                             />
                         </div>
