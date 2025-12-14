@@ -131,7 +131,7 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
 
     // --- Wizard State ---
     const [currentStep, setCurrentStep] = useState(1);
-    const TOTAL_STEPS = 9;
+    const TOTAL_STEPS = 8;
 
     const steps = [
         "Idea Snapshot",
@@ -139,8 +139,7 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
         "Solution & Advantage",
         "Market Potential",
         "Revenue Model",
-        "Execution Difficulty",
-        "Validation",
+        "Execution & Validation",
         "Sale & Rights",
         "Supporting Documents"
     ];
@@ -574,7 +573,7 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                 return problemDescription.trim().length > 0;
             case 3: // Solution
                 return solutionSummary.trim().length > 0;
-            case 9: // Documents
+            case 8: // Documents
                 // valid if existing OR new
                 return (mainDocument !== null || existingMainDocUrl !== null);
             default:
@@ -632,16 +631,21 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
             </button>
 
             <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/5 rounded-2xl p-6 md:p-10 shadow-2xl min-h-[600px] flex flex-col">
-                <div className="flex justify-between items-center mb-6">
-                    <div>
-                        <h1 className="text-3xl font-bold text-white mb-2">{editId ? 'Edit Listing' : 'Sell Your Idea'}</h1>
-                        <p className="text-zinc-400">Step {currentStep} of {TOTAL_STEPS}: <span className="text-white font-medium">{steps[currentStep - 1]}</span></p>
+                <div className="mb-8">
+                    <div className="text-center mb-6">
+                        <h1 className="text-3xl font-bold text-white mb-2">{editId ? 'Edit Listing' : 'List Your Idea'}</h1>
+                        <p className="text-zinc-400">Complete the valuation framework to list your concept on the market.</p>
                     </div>
-                    {/* Simple Progress Bar */}
-                    <div className="hidden md:flex gap-1">
-                        {steps.map((_, i) => (
-                            <div key={i} className={`h-1 w-8 rounded-full ${i + 1 <= currentStep ? 'bg-green-500' : 'bg-zinc-800'}`} />
-                        ))}
+
+                    <div className="flex justify-between items-end mb-2">
+                        <span className="text-xs font-mono text-green-500 uppercase tracking-wider">Step {currentStep} of {TOTAL_STEPS}</span>
+                        <span className="text-xs text-zinc-500">{Math.round((currentStep / TOTAL_STEPS) * 100)}% Completed</span>
+                    </div>
+                    <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
+                        <div
+                            className="h-full bg-green-500 transition-all duration-500 ease-out"
+                            style={{ width: `${(currentStep / TOTAL_STEPS) * 100}%` }}
+                        />
                     </div>
                 </div>
 
@@ -659,11 +663,11 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                             <div className="grid md:grid-cols-1 gap-6">
                                 <div>
                                     <label className="block text-sm font-medium text-zinc-300 mb-1">Idea Title <span className="text-red-500">*</span></label>
-                                    <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-green-500 transition-colors" placeholder="e.g. AI-Powered Freelance Marketplace" />
+                                    <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-green-500 transition-colors" placeholder="e.g. Uber for Dog Walking" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-zinc-300 mb-1">One-line Description <span className="text-red-500">*</span> <span className="text-xs text-zinc-500">(Max 200 chars)</span></label>
-                                    <input type="text" maxLength={200} value={oneLineDescription} onChange={(e) => setOneLineDescription(e.target.value)} className="w-full bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-green-500 transition-colors" placeholder="A brief, catchy elevator pitch." />
+                                    <input type="text" maxLength={200} value={oneLineDescription} onChange={(e) => setOneLineDescription(e.target.value)} className="w-full bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-green-500 transition-colors" placeholder="A brief hook for your idea..." />
                                 </div>
                             </div>
 
@@ -697,11 +701,11 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
 
                             <div>
                                 <label className="block text-sm font-medium text-zinc-300 mb-1">Problem Description <span className="text-red-500">*</span></label>
-                                <textarea value={problemDescription} onChange={(e) => setProblemDescription(e.target.value)} className="w-full bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none min-h-[100px]" placeholder="What is the core problem?"></textarea>
+                                <textarea value={problemDescription} onChange={(e) => setProblemDescription(e.target.value)} className="w-full bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none min-h-[100px]" placeholder="Describe the core problem this idea solves..."></textarea>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-zinc-300 mb-1">Who Faces This Problem?</label>
-                                <input type="text" value={whoFacesProblem} onChange={(e) => setWhoFacesProblem(e.target.value)} className="w-full bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none" />
+                                <input type="text" value={whoFacesProblem} onChange={(e) => setWhoFacesProblem(e.target.value)} className="w-full bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none" placeholder="Specific persona or demographic" />
                             </div>
 
                             <div className="grid md:grid-cols-2 gap-6">
@@ -811,10 +815,12 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                         </div>
                     )}
 
-                    {/* 6. Execution Difficulty */}
+                    {/* 6. Execution & Validation */}
                     {currentStep === 6 && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                            <h2 className="text-xl font-bold text-white">Execution Difficulty</h2>
+                            <h2 className="text-xl font-bold text-white">Execution & Validation</h2>
+
+                            {/* Execution Difficulty */}
                             <div className="grid md:grid-cols-3 gap-6">
                                 <div>
                                     <label className="block text-sm font-medium text-zinc-300 mb-1">Build Difficulty</label>
@@ -835,30 +841,28 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                                     </select>
                                 </div>
                             </div>
-                        </div>
-                    )}
 
-                    {/* 7. Validation */}
-                    {currentStep === 7 && (
-                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                            <h2 className="text-xl font-bold text-white">Validation (Optional but Weighted)</h2>
-                            <div className="grid md:grid-cols-1 gap-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1">Validation Level</label>
-                                    <select value={validationLevel} onChange={(e) => setValidationLevel(e.target.value)} className="w-full bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none">
-                                        {VALIDATION_LEVELS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1">Validation Notes</label>
-                                    <textarea value={validationNotes} onChange={(e) => setValidationNotes(e.target.value)} className="w-full bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none h-24" placeholder="Share any specific traction/validation details (optional)."></textarea>
+                            {/* Validation */}
+                            <div className="pt-6 border-t border-zinc-800">
+                                <h3 className="text-lg font-medium text-white mb-4">Validation</h3>
+                                <div className="grid md:grid-cols-1 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-zinc-300 mb-1">Validation Level</label>
+                                        <select value={validationLevel} onChange={(e) => setValidationLevel(e.target.value)} className="w-full bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none">
+                                            {VALIDATION_LEVELS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-zinc-300 mb-1">Validation Notes</label>
+                                        <textarea value={validationNotes} onChange={(e) => setValidationNotes(e.target.value)} className="w-full bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none h-24" placeholder="Share any specific traction/validation details (optional)."></textarea>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    {/* 8. Sale & Rights */}
-                    {currentStep === 8 && (
+                    {/* 7. Sale & Rights */}
+                    {currentStep === 7 && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                             <h2 className="text-xl font-bold text-white">Sale & Rights</h2>
                             <div className="grid md:grid-cols-3 gap-6">
@@ -889,8 +893,8 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                         </div>
                     )}
 
-                    {/* 9. Supporting Documents */}
-                    {currentStep === 9 && (
+                    {/* 8. Supporting Documents */}
+                    {currentStep === 8 && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                             <h2 className="text-xl font-bold text-white mb-6">Supporting Documents</h2>
                             <div className={`border rounded-xl p-6 bg-zinc-950/30 ${touched && !mainDocument && !existingMainDocUrl ? 'border-red-500/50' : 'border-zinc-800'}`}>
