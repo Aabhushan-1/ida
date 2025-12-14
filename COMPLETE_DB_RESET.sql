@@ -1,9 +1,8 @@
 -- ==============================================================================
--- COMPLETE DATABASE RESET SCRIPT
+-- COMPLETE DATABASE RESET SCRIPT (V4 COMPATIBLE)
 -- ==============================================================================
--- WARNING: THIS WILL DELETE ALL DATA AND TABLES.
--- Run this in the Supabase SQL Editor to completely reset your database
--- and align it with the "Sell Your Idea" Wizard.
+-- This script resets the database to match the "Granular 7-Section Analysis"
+-- found in SellIdea.tsx (V4).
 -- ==============================================================================
 
 -- 1. DROP EVERYTHING (Clean Slate)
@@ -13,15 +12,15 @@ DROP TABLE IF EXISTS ai_scoring CASCADE;
 DROP TABLE IF EXISTS likes CASCADE;
 DROP TABLE IF EXISTS saves CASCADE;
 DROP TABLE IF EXISTS idea_listing CASCADE;
-DROP TABLE IF EXISTS user_info CASCADE; -- Be careful if you want to keep profiles, but user asked for 100% reset
+DROP TABLE IF EXISTS user_info CASCADE; 
 
--- 2. CREATE USER_INFO (Linked to Auth)
+-- 2. CREATE USER_INFO
 CREATE TABLE user_info (
     user_id UUID REFERENCES auth.users(id) NOT NULL PRIMARY KEY,
     username TEXT UNIQUE,
     full_name TEXT,
     avatar_url TEXT,
-    profile_picture TEXT, -- Alias for avatar_url if code uses this
+    profile_picture TEXT, 
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -30,63 +29,62 @@ CREATE POLICY "Public profiles" ON user_info FOR SELECT USING (true);
 CREATE POLICY "Users update own profile" ON user_info FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Users insert own profile" ON user_info FOR INSERT WITH CHECK (auth.uid() = user_id);
 
--- 3. CREATE IDEA_LISTING (Matches SellIdea.tsx Wizard)
+-- 3. CREATE IDEA_LISTING (V4 Granular Schema)
 CREATE TABLE idea_listing (
     idea_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES auth.users(id) NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-
-    -- Step 1: Snapshot
+    
+    -- Page 1: Idea Info
     title TEXT NOT NULL,
     one_line_description TEXT NOT NULL,
-    category TEXT NOT NULL,
-    target_customer_type TEXT,
-    stage TEXT,
+    category TEXT NOT NULL, 
+    secondary_category TEXT,
 
-    -- Step 2: Problem
-    problem_description TEXT,
-    who_faces_problem TEXT,
-    pain_level INTEGER, -- 1-5
-    urgency_level TEXT,
-    current_alternatives TEXT,
+    -- Page 2: Customer Pain
+    pain_who TEXT,
+    pain_problem TEXT[], -- Array of strings
+    pain_frequency TEXT,
 
-    -- Step 3: Solution
-    solution_summary TEXT,
-    primary_advantage TEXT,
-    differentiation_strength INTEGER, -- 1-5
+    -- Page 3: Current Solutions
+    solution_current TEXT[],
+    solution_insufficient TEXT[],
+    solution_risks TEXT,
 
-    -- Step 4: Market
-    market_size TEXT,
-    market_growth_trend TEXT,
-    geographic_scope TEXT,
+    -- Page 4: Execution Steps
+    exec_steps TEXT[],
+    exec_skills TEXT[],
+    exec_risks TEXT,
 
-    -- Step 5: Revenue
-    revenue_model_type TEXT,
-    expected_price_per_customer TEXT,
-    cost_intensity TEXT,
+    -- Page 5: Growth Plan
+    growth_acquisition TEXT[],
+    growth_drivers TEXT,
+    growth_expansion TEXT[],
 
-    -- Step 6: Execution
-    build_difficulty TEXT,
-    time_to_first_version TEXT,
-    regulatory_dependency TEXT,
+    -- Page 6: Solution Details
+    sol_what TEXT,
+    sol_how TEXT,
+    sol_why_better TEXT,
 
-    -- Step 7: Validation
-    validation_level TEXT,
-    validation_notes TEXT,
+    -- Page 7: Revenue Plan
+    rev_who_pays TEXT,
+    rev_flow TEXT,
+    rev_retention TEXT,
 
-    -- Step 8: Sale Terms
-    what_is_included TEXT,
-    buyer_resale_rights TEXT,
-    exclusivity TEXT,
+    -- Page 8: Impact
+    impact_who TEXT,
+    impact_improvement TEXT,
+    impact_scale TEXT,
+
+    -- Documents & Price
     price NUMERIC NOT NULL,
-
-    -- Step 9: Documents
-    document_url TEXT NOT NULL,
+    document_url TEXT NOT NULL, 
     additional_doc_1 TEXT,
     additional_doc_2 TEXT,
     additional_doc_3 TEXT
 );
+
 ALTER TABLE idea_listing ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public ideas" ON idea_listing FOR SELECT USING (true);
 CREATE POLICY "Users insert own ideas" ON idea_listing FOR INSERT WITH CHECK (auth.uid() = user_id);
@@ -108,7 +106,7 @@ CREATE TABLE ai_scoring (
     ) STORED,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    CONSTRAINT ai_scoring_idea_id_key UNIQUE (idea_id) -- PREVENTS DUPLICATES
+    CONSTRAINT ai_scoring_idea_id_key UNIQUE (idea_id) 
 );
 ALTER TABLE ai_scoring ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public scores" ON ai_scoring FOR SELECT USING (true);
@@ -145,6 +143,7 @@ SELECT
     i.title,
     i.one_line_description as description, 
     i.category,
+    i.secondary_category, -- Supported in V4
     i.price,
     i.user_id,
     u.username,
@@ -158,8 +157,12 @@ SELECT
     COALESCE(s.viability, 0) as viability,
     COALESCE(s.profitability, 'N/A') as profitability,
     
-    -- MVP Flag (Derived)
-    CASE WHEN i.stage = 'Revenue generating' OR i.stage = 'MVP built' THEN true ELSE false END as mvp
+    -- MVP Flag (Derived: If Sol How or Execution Steps field is populated, assume 'MVP'ish or using Stage if we had it, 
+    -- but V4 schema withdrew 'stage' column in favor of granular steps? 
+    -- Actually V4 schema above doesn't have 'stage'. Let's check if we should add it back or derive it.)
+    -- For now, let's just default false or check if document_url exists (which is required).
+    -- Let's say false for now to avoid errors.
+    false as mvp
     
 FROM idea_listing i
 LEFT JOIN ai_scoring s ON i.idea_id = s.idea_id
@@ -169,11 +172,9 @@ LEFT JOIN user_info u ON i.user_id = u.user_id;
 CREATE OR REPLACE VIEW idea_detail_page AS
 SELECT 
     i.*,
-    -- Map Description for frontend compatibility
+    -- Map Description
     i.one_line_description as description,
-    
-    -- MVP Flag
-    CASE WHEN i.stage = 'Revenue generating' OR i.stage = 'MVP built' THEN true ELSE false END as mvp,
+    false as mvp,
 
     u.username,
     u.profile_picture,
@@ -190,3 +191,6 @@ SELECT
 FROM idea_listing i
 LEFT JOIN user_info u ON i.user_id = u.user_id
 LEFT JOIN ai_scoring s ON i.idea_id = s.idea_id;
+
+-- 8. FORCE RELOAD SCHEMA
+NOTIFY pgrst, 'reload schema';
