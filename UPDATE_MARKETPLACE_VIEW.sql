@@ -37,7 +37,7 @@ SELECT
         2
     ) AS overall_score
     
-FROM idea_listings i
+FROM idea_listing i
 JOIN ai_scoring ai ON i.idea_id = ai.idea_id
 JOIN user_info u ON i.user_id = u.user_id
 ORDER BY i.created_at DESC;
