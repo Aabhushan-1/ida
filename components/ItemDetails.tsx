@@ -32,6 +32,7 @@ export const ItemDetails: React.FC<ItemDetailsProps> = ({ ideaId, onBack }) => {
     const [isShareOpen, setIsShareOpen] = useState(false);
     const [copied, setCopied] = useState(false);
     const [shareCount, setShareCount] = useState(0);
+    const [isPaymentSuccess, setIsPaymentSuccess] = useState(false);
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -336,7 +337,14 @@ export const ItemDetails: React.FC<ItemDetailsProps> = ({ ideaId, onBack }) => {
 
                         {/* Main CTAs */}
                         <div className="space-y-3 mb-6">
-                            <button className="w-full bg-white text-black hover:bg-zinc-200 font-bold text-lg py-3.5 rounded-xl transition-all shadow-lg">
+                            <button
+                                onClick={() => {
+                                    if (!currentUser) return alert('Please log in to purchase.');
+                                    setIsPaymentSuccess(true);
+                                    // Make confetti or something later?
+                                }}
+                                className="w-full bg-white text-black hover:bg-zinc-200 font-bold text-lg py-3.5 rounded-xl transition-all shadow-lg"
+                            >
                                 Buy Now
                             </button>
                             <button
@@ -470,6 +478,36 @@ export const ItemDetails: React.FC<ItemDetailsProps> = ({ ideaId, onBack }) => {
                                         Copy Link
                                     </>
                                 )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Payment Success Modal */}
+            {isPaymentSuccess && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-sm w-full relative animate-in fade-in zoom-in duration-300 shadow-2xl">
+                        <div className="flex flex-col items-center text-center gap-6">
+                            {/* Success Icon */}
+                            <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center border border-green-500/20">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-10 h-10 text-green-500">
+                                    <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+                                </svg>
+                            </div>
+
+                            {/* Text */}
+                            <div className="space-y-2">
+                                <h3 className="text-2xl font-bold text-white">Payment Successful!</h3>
+                                <p className="text-zinc-400 text-sm">You have successfully purchased this idea. Check your email for details.</p>
+                            </div>
+
+                            {/* Button */}
+                            <button
+                                onClick={() => setIsPaymentSuccess(false)}
+                                className="w-full bg-white hover:bg-zinc-200 text-black font-bold py-3.5 rounded-xl transition-all"
+                            >
+                                Continue
                             </button>
                         </div>
                     </div>
