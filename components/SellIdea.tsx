@@ -534,377 +534,382 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
             </div>
 
             {/* Main Content */}
-            <div className="bg-zinc-900/30 border border-zinc-800 rounded-2xl p-8 backdrop-blur-sm relative overflow-hidden">
-                {/* Glow */}
-                <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-[#22C55E]/5 blur-[80px] rounded-full pointer-events-none"></div>
-
-                <h1 className="text-2xl font-bold text-white mb-8 flex items-center gap-3 relative z-10">
-                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 text-sm font-mono text-[#22C55E]">
-                        {currentStep}
-                    </span>
-                    {stepTitles[currentStep - 1]}
-                </h1>
-
-                {submitError && <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-sm">{submitError}</div>}
-
-                <div className="relative z-10 min-h-[400px]">
-
-                    {/* STEP 1: Idea Info */}
-                    {currentStep === 1 && (
-                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                            <div>
-                                <Label>Title <span className="text-red-500">*</span></Label>
-                                <Input value={title} onChange={(e: any) => setTitle(e.target.value)} placeholder="Name of your idea" />
-                            </div>
-                            <div>
-                                <Label>Short Description <span className="text-red-500">*</span></Label>
-                                <TextArea value={shortDescription} onChange={(e: any) => setShortDescription(e.target.value)} rows={4} placeholder="Elevator pitch description..." />
-                            </div>
-                            <div className="grid md:grid-cols-2 gap-6">
-                                <div>
-                                    <Label>Primary Category <span className="text-red-500">*</span></Label>
-                                    <Select
-                                        value={primaryCategory}
-                                        onChange={setPrimaryCategory}
-                                        options={industryOptions.filter(c => c !== secondaryCategory)}
-                                        placeholder="Primary"
-                                    />
-                                </div>
-                                <div>
-                                    <Label>Secondary Category <span className="text-red-500">*</span></Label>
-                                    <Select
-                                        value={secondaryCategory}
-                                        onChange={setSecondaryCategory}
-                                        options={industryOptions.filter(c => c !== primaryCategory)}
-                                        placeholder="Secondary"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* STEP 2: Customer Pain */}
-                    {currentStep === 2 && (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
-                            <div>
-                                <Label>Who has this problem? (Paragraph) <span className="text-red-500">*</span></Label>
-                                <TextArea value={painWho} onChange={(e: any) => setPainWho(e.target.value)} placeholder="Describe the target audience..." />
-                            </div>
-                            <div>
-                                <Label>What exactly is the problem and how does it affect them? (List) <span className="text-red-500">*</span></Label>
-                                <ContentEditableList items={painProblem} onChange={setPainProblem} placeholder="Pain point..." />
-                            </div>
-                            <div>
-                                <Label>How often does this problem occur? (Paragraph) <span className="text-red-500">*</span></Label>
-                                <TextArea value={painFrequency} onChange={(e: any) => setPainFrequency(e.target.value)} placeholder="Frequency of the problem..." />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* STEP 3: Current Solutions */}
-                    {currentStep === 3 && (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
-                            <div>
-                                <Label>How do people solve this problem today? (List) <span className="text-red-500">*</span></Label>
-                                <ContentEditableList items={solutionCurrent} onChange={setSolutionCurrent} placeholder="Current solution..." />
-                            </div>
-                            <div>
-                                <Label>Why are current solutions insufficient or unsatisfactory? (List) <span className="text-red-500">*</span></Label>
-                                <ContentEditableList items={solutionInsufficient} onChange={setSolutionInsufficient} placeholder="Reason insufficient..." />
-                            </div>
-                            <div>
-                                <Label>What risks or limitations exist with current solutions? (Paragraph) <span className="text-red-500">*</span></Label>
-                                <TextArea value={solutionRisks} onChange={(e: any) => setSolutionRisks(e.target.value)} placeholder="Risks involved..." />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* STEP 4: Execution Steps */}
-                    {currentStep === 4 && (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
-                            <div>
-                                <Label>Steps to build the first usable version (List) <span className="text-red-500">*</span></Label>
-                                <ContentEditableList items={execSteps} onChange={setExecSteps} placeholder="Step..." />
-                            </div>
-                            <div>
-                                <Label>Skills, tools, or resources required (List) <span className="text-red-500">*</span></Label>
-                                <ContentEditableList items={execSkills} onChange={setExecSkills} placeholder="Skill/Tool..." />
-                            </div>
-                            <div>
-                                <Label>Most difficult or risky parts of execution (Paragraph) <span className="text-red-500">*</span></Label>
-                                <TextArea value={execRisks} onChange={(e: any) => setExecRisks(e.target.value)} placeholder="Execution risks..." />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* STEP 5: Growth Plan */}
-                    {currentStep === 5 && (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
-                            <div>
-                                <Label>How will the first users be acquired? (List) <span className="text-red-500">*</span></Label>
-                                <ContentEditableList items={growthAcquisition} onChange={setGrowthAcquisition} placeholder="Acquisition channel..." />
-                            </div>
-                            <div>
-                                <Label>What drives growth over time? (Paragraph) <span className="text-red-500">*</span></Label>
-                                <TextArea value={growthDrivers} onChange={(e: any) => setGrowthDrivers(e.target.value)} placeholder="Growth drivers..." />
-                            </div>
-                            <div>
-                                <Label>Possible expansion paths (markets, features, users) (List) <span className="text-red-500">*</span></Label>
-                                <ContentEditableList items={growthExpansion} onChange={setGrowthExpansion} placeholder="Expansion idea..." />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* STEP 6: Solution Details */}
-                    {currentStep === 6 && (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
-                            <div>
-                                <Label>What is the solution? (Paragraph) <span className="text-red-500">*</span></Label>
-                                <TextArea value={solWhat} onChange={(e: any) => setSolWhat(e.target.value)} placeholder="Describe the solution..." />
-                            </div>
-                            <div>
-                                <Label>How does it work at a high level? (Paragraph) <span className="text-red-500">*</span></Label>
-                                <TextArea value={solHow} onChange={(e: any) => setSolHow(e.target.value)} placeholder="Technical/Functional mechanism..." />
-                            </div>
-                            <div>
-                                <Label>Why is it better than existing solutions? (Paragraph) <span className="text-red-500">*</span></Label>
-                                <TextArea value={solWhyBetter} onChange={(e: any) => setSolWhyBetter(e.target.value)} placeholder="Competitive advantage..." />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* STEP 7: Revenue Plan */}
-                    {currentStep === 7 && (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
-                            <div>
-                                <Label>Who pays and why? (Paragraph) <span className="text-red-500">*</span></Label>
-                                <TextArea value={revWhoPays} onChange={(e: any) => setRevWhoPays(e.target.value)} placeholder="Payer profile..." />
-                            </div>
-                            <div>
-                                <Label>How does money flow into the business? (Paragraph) <span className="text-red-500">*</span></Label>
-                                <TextArea value={revFlow} onChange={(e: any) => setRevFlow(e.target.value)} placeholder="Revenue mechanism..." />
-                            </div>
-                            <div>
-                                <Label>Why would customers keep paying? (Paragraph) <span className="text-red-500">*</span></Label>
-                                <TextArea value={revRetention} onChange={(e: any) => setRevRetention(e.target.value)} placeholder="Retention factor..." />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* STEP 8: Impact */}
-                    {currentStep === 8 && (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
-                            <div>
-                                <Label>Who benefits the most from this idea? (Paragraph) <span className="text-red-500">*</span></Label>
-                                <TextArea value={impactWho} onChange={(e: any) => setImpactWho(e.target.value)} placeholder="Primary beneficaries..." />
-                            </div>
-                            <div>
-                                <Label>What real-world improvement does this create? (Paragraph) <span className="text-red-500">*</span></Label>
-                                <TextArea value={impactImprovement} onChange={(e: any) => setImpactImprovement(e.target.value)} placeholder="Improvements..." />
-                            </div>
-                            <div>
-                                <Label>What changes if this succeeds at scale? (Paragraph) <span className="text-red-500">*</span></Label>
-                                <TextArea value={impactScale} onChange={(e: any) => setImpactScale(e.target.value)} placeholder="Long term vision..." />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* STEP 9: Finalize */}
-                    {currentStep === 9 && (
-                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                            <div>
-                                <Label>Prospectus / Business Plan (PDF) <span className="text-red-500">*</span></Label>
-                                {(mainDocument || existingMainDocUrl) ? (
-                                    <div className="flex items-center justify-between bg-zinc-800 p-4 rounded-lg border border-zinc-700">
-                                        <span className="text-zinc-200 text-sm truncate">{mainDocument?.name || 'Existing Document'}</span>
-                                        <button onClick={() => { setMainDocument(null); setExistingMainDocUrl(null); }} className="text-red-400"><XMarkIcon className="w-5 h-5" /></button>
-                                    </div>
-                                ) : (
-                                    <input type="file" onChange={handleMainDocUpload} accept=".pdf" className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-zinc-800 file:text-green-500 hover:file:bg-zinc-700" />
-                                )}
-                            </div>
-
-                            {/* Additional Documents Toggle Section */}
-                            <div>
-                                <Label>Do you have additional documents? <span className="text-red-500">*</span></Label>
-                                <div className="flex items-center gap-4 mt-2 mb-4">
-                                    <button
-                                        onClick={() => setHasAdditionalDocs(true)}
-                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${hasAdditionalDocs === true
-                                            ? 'bg-green-500 text-black border-green-500'
-                                            : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:border-zinc-500'
-                                            }`}
-                                    >
-                                        Yes
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setHasAdditionalDocs(false);
-                                            // Optional: Clear docs if they say no? 
-                                            // For now, let's just hide the input. 
-                                            // Ideally we might want to warn them or clear the array.
-                                        }}
-                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${hasAdditionalDocs === false
-                                            ? 'bg-zinc-200 text-black border-zinc-200'
-                                            : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:border-zinc-500'
-                                            }`}
-                                    >
-                                        No
-                                    </button>
-                                </div>
-
-                                {hasAdditionalDocs && (
-                                    <div className="animate-in fade-in slide-in-from-top-2">
-                                        <p className="text-zinc-500 text-xs mb-3">Upload up to 3 documents (Research Paper, Data Collection, etc.)</p>
-
-                                        <div className="space-y-3 mb-3">
-                                            {/* Existing Docs (Edit Mode) */}
-                                            {existingAdditionalDocs.map((url, index) => (
-                                                <div key={`existing-${index}`} className="flex items-center justify-between bg-zinc-800 p-3 rounded-lg border border-zinc-700">
-                                                    <div className="flex items-center gap-2 overflow-hidden">
-                                                        <span className="px-2 py-0.5 rounded text-[10px] bg-zinc-700 text-zinc-300 font-mono uppercase">Existing</span>
-                                                        <span className="text-zinc-200 text-sm truncate block">Document {index + 1}</span>
-                                                    </div>
-                                                    <button onClick={() => removeExistingAdditionalDoc(index)} className="text-red-400 hover:text-red-300 p-1">
-                                                        <XMarkIcon className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            ))}
-
-                                            {/* New Docs */}
-                                            {additionalDocuments.map((file, index) => (
-                                                <div key={`new-${index}`} className="flex items-center justify-between bg-zinc-800 p-3 rounded-lg border border-zinc-700">
-                                                    <div className="flex items-center gap-2 overflow-hidden">
-                                                        <span className="px-2 py-0.5 rounded text-[10px] bg-green-500/10 text-green-500 border border-green-500/20 font-mono uppercase">New</span>
-                                                        <span className="text-zinc-200 text-sm truncate block">{file.name}</span>
-                                                    </div>
-                                                    <button onClick={() => removeAdditionalDoc(index)} className="text-red-400 hover:text-red-300 p-1">
-                                                        <XMarkIcon className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        {/* Upload Button */}
-                                        {(additionalDocuments.length + existingAdditionalDocs.length) < 3 && (
-                                            <div className="relative">
-                                                <input
-                                                    type="file"
-                                                    onChange={handleAdditionalDocsUpload}
-                                                    accept=".pdf"
-                                                    disabled={(additionalDocuments.length + existingAdditionalDocs.length) >= 3}
-                                                    className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-zinc-800 file:text-green-500 hover:file:bg-zinc-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* MVP Toggle Section */}
-                            <div>
-                                <Label>Do you have an MVP (Minimum Viable Product)? <span className="text-red-500">*</span></Label>
-                                <div className="flex items-center gap-4 mt-2 mb-4">
-                                    <button
-                                        onClick={() => setHasMvp(true)}
-                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${hasMvp === true
-                                            ? 'bg-green-500 text-black border-green-500'
-                                            : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:border-zinc-500'
-                                            }`}
-                                    >
-                                        Yes
-                                    </button>
-                                    <button
-                                        onClick={() => setHasMvp(false)}
-                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${hasMvp === false
-                                            ? 'bg-zinc-200 text-black border-zinc-200'
-                                            : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:border-zinc-500'
-                                            }`}
-                                    >
-                                        No
-                                    </button>
-                                </div>
-
-                                {hasMvp && (
-                                    <div className="space-y-6 animate-in fade-in slide-in-from-top-2 p-4 bg-zinc-900/30 rounded-lg border border-zinc-800">
-
-                                        <div>
-                                            <Label>What type of MVP is it? <span className="text-red-500">*</span></Label>
-                                            <Select
-                                                value={mvpType}
-                                                onChange={(val) => setMvpType(val)}
-                                                options={['digital', 'physical']}
-                                                placeholder="Select MVP Type"
-                                            />
-                                        </div>
-
-                                        {mvpType === 'digital' && (
-                                            <div>
-                                                <Label>MVP URL <span className="text-red-500">*</span></Label>
-                                                <Input
-                                                    value={mvpUrl}
-                                                    onChange={(e: any) => setMvpUrl(e.target.value)}
-                                                    placeholder="https://example.com/demo"
-                                                />
-                                            </div>
-                                        )}
-
-                                        {mvpType === 'physical' && (
-                                            <div className="space-y-4">
-                                                <div>
-                                                    <Label>Product Image <span className="text-red-500">*</span></Label>
-                                                    <div className="flex items-center gap-3">
-                                                        <input
-                                                            type="file"
-                                                            onChange={(e) => e.target.files && setMvpImage(e.target.files[0])}
-                                                            accept="image/*"
-                                                            className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-zinc-800 file:text-green-500 hover:file:bg-zinc-700 cursor-pointer"
-                                                        />
-                                                        {mvpImage && <CheckCircleIconSolid className="w-6 h-6 text-green-500" />}
-                                                    </div>
-                                                </div>
-
-                                                <div>
-                                                    <Label>Product Video <span className="text-red-500">*</span></Label>
-                                                    <div className="flex items-center gap-3">
-                                                        <input
-                                                            type="file"
-                                                            onChange={(e) => e.target.files && setMvpVideo(e.target.files[0])}
-                                                            accept="video/*"
-                                                            className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-zinc-800 file:text-green-500 hover:file:bg-zinc-700 cursor-pointer"
-                                                        />
-                                                        {mvpVideo && <CheckCircleIconSolid className="w-6 h-6 text-green-500" />}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                            <div>
-                                <Label>Asking Price ($) <span className="text-red-500">*</span></Label>
-                                <Input type="number" value={price} onChange={(e: any) => setPrice(e.target.value)} placeholder="e.g. 5000" />
-                            </div>
-                        </div>
-                    )}
-
+            <div className="relative rounded-2xl isolate">
+                {/* Background & Glow - Clipped */}
+                <div className="absolute inset-0 bg-zinc-900/30 border border-zinc-800 rounded-2xl backdrop-blur-sm overflow-hidden pointer-events-none -z-10">
+                    <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-[#22C55E]/5 blur-[80px] rounded-full"></div>
                 </div>
 
-                {/* Footer Nav */}
-                <div className="mt-12 pt-6 border-t border-zinc-800 flex justify-between items-center">
-                    <button onClick={handleBack} disabled={currentStep === 1} className={`flex items-center gap-2 text-sm font-medium ${currentStep === 1 ? 'text-zinc-700 cursor-not-allowed' : 'text-zinc-400 hover:text-white'}`}>
-                        <ChevronLeftIcon className="w-4 h-4" /> Back
-                    </button>
+                {/* Content - Visible Overflow */}
+                <div className="relative p-8">
+                    <h1 className="text-2xl font-bold text-white mb-8 flex items-center gap-3 relative z-10">
+                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 text-sm font-mono text-[#22C55E]">
+                            {currentStep}
+                        </span>
+                        {stepTitles[currentStep - 1]}
+                    </h1>
 
-                    {currentStep < TOTAL_STEPS ? (
-                        <button onClick={handleNext} disabled={!isStepValid} className={`flex items-center gap-2 bg-[#22C55E] text-black px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-green-400 transition-all ${!isStepValid ? 'opacity-50 cursor-not-allowed' : 'shadow-[0_0_20px_rgba(34,197,94,0.3)]'}`}>
-                            Next Step <ChevronRightIcon className="w-4 h-4" />
+                    {submitError && <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-sm">{submitError}</div>}
+
+                    <div className="relative z-10 min-h-[400px]">
+
+                        {/* STEP 1: Idea Info */}
+                        {currentStep === 1 && (
+                            <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                                <div>
+                                    <Label>Title <span className="text-red-500">*</span></Label>
+                                    <Input value={title} onChange={(e: any) => setTitle(e.target.value)} placeholder="Name of your idea" />
+                                </div>
+                                <div>
+                                    <Label>Short Description <span className="text-red-500">*</span></Label>
+                                    <TextArea value={shortDescription} onChange={(e: any) => setShortDescription(e.target.value)} rows={4} placeholder="Elevator pitch description..." />
+                                </div>
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    <div>
+                                        <Label>Primary Category <span className="text-red-500">*</span></Label>
+                                        <Select
+                                            value={primaryCategory}
+                                            onChange={setPrimaryCategory}
+                                            options={industryOptions.filter(c => c !== secondaryCategory)}
+                                            placeholder="Primary"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label>Secondary Category <span className="text-red-500">*</span></Label>
+                                        <Select
+                                            value={secondaryCategory}
+                                            onChange={setSecondaryCategory}
+                                            options={industryOptions.filter(c => c !== primaryCategory)}
+                                            placeholder="Secondary"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* STEP 2: Customer Pain */}
+                        {currentStep === 2 && (
+                            <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                                <div>
+                                    <Label>Who has this problem? (Paragraph) <span className="text-red-500">*</span></Label>
+                                    <TextArea value={painWho} onChange={(e: any) => setPainWho(e.target.value)} placeholder="Describe the target audience..." />
+                                </div>
+                                <div>
+                                    <Label>What exactly is the problem and how does it affect them? (List) <span className="text-red-500">*</span></Label>
+                                    <ContentEditableList items={painProblem} onChange={setPainProblem} placeholder="Pain point..." />
+                                </div>
+                                <div>
+                                    <Label>How often does this problem occur? (Paragraph) <span className="text-red-500">*</span></Label>
+                                    <TextArea value={painFrequency} onChange={(e: any) => setPainFrequency(e.target.value)} placeholder="Frequency of the problem..." />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* STEP 3: Current Solutions */}
+                        {currentStep === 3 && (
+                            <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                                <div>
+                                    <Label>How do people solve this problem today? (List) <span className="text-red-500">*</span></Label>
+                                    <ContentEditableList items={solutionCurrent} onChange={setSolutionCurrent} placeholder="Current solution..." />
+                                </div>
+                                <div>
+                                    <Label>Why are current solutions insufficient or unsatisfactory? (List) <span className="text-red-500">*</span></Label>
+                                    <ContentEditableList items={solutionInsufficient} onChange={setSolutionInsufficient} placeholder="Reason insufficient..." />
+                                </div>
+                                <div>
+                                    <Label>What risks or limitations exist with current solutions? (Paragraph) <span className="text-red-500">*</span></Label>
+                                    <TextArea value={solutionRisks} onChange={(e: any) => setSolutionRisks(e.target.value)} placeholder="Risks involved..." />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* STEP 4: Execution Steps */}
+                        {currentStep === 4 && (
+                            <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                                <div>
+                                    <Label>Steps to build the first usable version (List) <span className="text-red-500">*</span></Label>
+                                    <ContentEditableList items={execSteps} onChange={setExecSteps} placeholder="Step..." />
+                                </div>
+                                <div>
+                                    <Label>Skills, tools, or resources required (List) <span className="text-red-500">*</span></Label>
+                                    <ContentEditableList items={execSkills} onChange={setExecSkills} placeholder="Skill/Tool..." />
+                                </div>
+                                <div>
+                                    <Label>Most difficult or risky parts of execution (Paragraph) <span className="text-red-500">*</span></Label>
+                                    <TextArea value={execRisks} onChange={(e: any) => setExecRisks(e.target.value)} placeholder="Execution risks..." />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* STEP 5: Growth Plan */}
+                        {currentStep === 5 && (
+                            <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                                <div>
+                                    <Label>How will the first users be acquired? (List) <span className="text-red-500">*</span></Label>
+                                    <ContentEditableList items={growthAcquisition} onChange={setGrowthAcquisition} placeholder="Acquisition channel..." />
+                                </div>
+                                <div>
+                                    <Label>What drives growth over time? (Paragraph) <span className="text-red-500">*</span></Label>
+                                    <TextArea value={growthDrivers} onChange={(e: any) => setGrowthDrivers(e.target.value)} placeholder="Growth drivers..." />
+                                </div>
+                                <div>
+                                    <Label>Possible expansion paths (markets, features, users) (List) <span className="text-red-500">*</span></Label>
+                                    <ContentEditableList items={growthExpansion} onChange={setGrowthExpansion} placeholder="Expansion idea..." />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* STEP 6: Solution Details */}
+                        {currentStep === 6 && (
+                            <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                                <div>
+                                    <Label>What is the solution? (Paragraph) <span className="text-red-500">*</span></Label>
+                                    <TextArea value={solWhat} onChange={(e: any) => setSolWhat(e.target.value)} placeholder="Describe the solution..." />
+                                </div>
+                                <div>
+                                    <Label>How does it work at a high level? (Paragraph) <span className="text-red-500">*</span></Label>
+                                    <TextArea value={solHow} onChange={(e: any) => setSolHow(e.target.value)} placeholder="Technical/Functional mechanism..." />
+                                </div>
+                                <div>
+                                    <Label>Why is it better than existing solutions? (Paragraph) <span className="text-red-500">*</span></Label>
+                                    <TextArea value={solWhyBetter} onChange={(e: any) => setSolWhyBetter(e.target.value)} placeholder="Competitive advantage..." />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* STEP 7: Revenue Plan */}
+                        {currentStep === 7 && (
+                            <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                                <div>
+                                    <Label>Who pays and why? (Paragraph) <span className="text-red-500">*</span></Label>
+                                    <TextArea value={revWhoPays} onChange={(e: any) => setRevWhoPays(e.target.value)} placeholder="Payer profile..." />
+                                </div>
+                                <div>
+                                    <Label>How does money flow into the business? (Paragraph) <span className="text-red-500">*</span></Label>
+                                    <TextArea value={revFlow} onChange={(e: any) => setRevFlow(e.target.value)} placeholder="Revenue mechanism..." />
+                                </div>
+                                <div>
+                                    <Label>Why would customers keep paying? (Paragraph) <span className="text-red-500">*</span></Label>
+                                    <TextArea value={revRetention} onChange={(e: any) => setRevRetention(e.target.value)} placeholder="Retention factor..." />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* STEP 8: Impact */}
+                        {currentStep === 8 && (
+                            <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                                <div>
+                                    <Label>Who benefits the most from this idea? (Paragraph) <span className="text-red-500">*</span></Label>
+                                    <TextArea value={impactWho} onChange={(e: any) => setImpactWho(e.target.value)} placeholder="Primary beneficaries..." />
+                                </div>
+                                <div>
+                                    <Label>What real-world improvement does this create? (Paragraph) <span className="text-red-500">*</span></Label>
+                                    <TextArea value={impactImprovement} onChange={(e: any) => setImpactImprovement(e.target.value)} placeholder="Improvements..." />
+                                </div>
+                                <div>
+                                    <Label>What changes if this succeeds at scale? (Paragraph) <span className="text-red-500">*</span></Label>
+                                    <TextArea value={impactScale} onChange={(e: any) => setImpactScale(e.target.value)} placeholder="Long term vision..." />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* STEP 9: Finalize */}
+                        {currentStep === 9 && (
+                            <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                                <div>
+                                    <Label>Prospectus / Business Plan (PDF) <span className="text-red-500">*</span></Label>
+                                    {(mainDocument || existingMainDocUrl) ? (
+                                        <div className="flex items-center justify-between bg-zinc-800 p-4 rounded-lg border border-zinc-700">
+                                            <span className="text-zinc-200 text-sm truncate">{mainDocument?.name || 'Existing Document'}</span>
+                                            <button onClick={() => { setMainDocument(null); setExistingMainDocUrl(null); }} className="text-red-400"><XMarkIcon className="w-5 h-5" /></button>
+                                        </div>
+                                    ) : (
+                                        <input type="file" onChange={handleMainDocUpload} accept=".pdf" className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-zinc-800 file:text-green-500 hover:file:bg-zinc-700" />
+                                    )}
+                                </div>
+
+                                {/* Additional Documents Toggle Section */}
+                                <div>
+                                    <Label>Do you have additional documents? <span className="text-red-500">*</span></Label>
+                                    <div className="flex items-center gap-4 mt-2 mb-4">
+                                        <button
+                                            onClick={() => setHasAdditionalDocs(true)}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${hasAdditionalDocs === true
+                                                ? 'bg-green-500 text-black border-green-500'
+                                                : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:border-zinc-500'
+                                                }`}
+                                        >
+                                            Yes
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setHasAdditionalDocs(false);
+                                                // Optional: Clear docs if they say no? 
+                                                // For now, let's just hide the input. 
+                                                // Ideally we might want to warn them or clear the array.
+                                            }}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${hasAdditionalDocs === false
+                                                ? 'bg-zinc-200 text-black border-zinc-200'
+                                                : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:border-zinc-500'
+                                                }`}
+                                        >
+                                            No
+                                        </button>
+                                    </div>
+
+                                    {hasAdditionalDocs && (
+                                        <div className="animate-in fade-in slide-in-from-top-2">
+                                            <p className="text-zinc-500 text-xs mb-3">Upload up to 3 documents (Research Paper, Data Collection, etc.)</p>
+
+                                            <div className="space-y-3 mb-3">
+                                                {/* Existing Docs (Edit Mode) */}
+                                                {existingAdditionalDocs.map((url, index) => (
+                                                    <div key={`existing-${index}`} className="flex items-center justify-between bg-zinc-800 p-3 rounded-lg border border-zinc-700">
+                                                        <div className="flex items-center gap-2 overflow-hidden">
+                                                            <span className="px-2 py-0.5 rounded text-[10px] bg-zinc-700 text-zinc-300 font-mono uppercase">Existing</span>
+                                                            <span className="text-zinc-200 text-sm truncate block">Document {index + 1}</span>
+                                                        </div>
+                                                        <button onClick={() => removeExistingAdditionalDoc(index)} className="text-red-400 hover:text-red-300 p-1">
+                                                            <XMarkIcon className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+
+                                                {/* New Docs */}
+                                                {additionalDocuments.map((file, index) => (
+                                                    <div key={`new-${index}`} className="flex items-center justify-between bg-zinc-800 p-3 rounded-lg border border-zinc-700">
+                                                        <div className="flex items-center gap-2 overflow-hidden">
+                                                            <span className="px-2 py-0.5 rounded text-[10px] bg-green-500/10 text-green-500 border border-green-500/20 font-mono uppercase">New</span>
+                                                            <span className="text-zinc-200 text-sm truncate block">{file.name}</span>
+                                                        </div>
+                                                        <button onClick={() => removeAdditionalDoc(index)} className="text-red-400 hover:text-red-300 p-1">
+                                                            <XMarkIcon className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {/* Upload Button */}
+                                            {(additionalDocuments.length + existingAdditionalDocs.length) < 3 && (
+                                                <div className="relative">
+                                                    <input
+                                                        type="file"
+                                                        onChange={handleAdditionalDocsUpload}
+                                                        accept=".pdf"
+                                                        disabled={(additionalDocuments.length + existingAdditionalDocs.length) >= 3}
+                                                        className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-zinc-800 file:text-green-500 hover:file:bg-zinc-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* MVP Toggle Section */}
+                                <div>
+                                    <Label>Do you have an MVP (Minimum Viable Product)? <span className="text-red-500">*</span></Label>
+                                    <div className="flex items-center gap-4 mt-2 mb-4">
+                                        <button
+                                            onClick={() => setHasMvp(true)}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${hasMvp === true
+                                                ? 'bg-green-500 text-black border-green-500'
+                                                : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:border-zinc-500'
+                                                }`}
+                                        >
+                                            Yes
+                                        </button>
+                                        <button
+                                            onClick={() => setHasMvp(false)}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${hasMvp === false
+                                                ? 'bg-zinc-200 text-black border-zinc-200'
+                                                : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:border-zinc-500'
+                                                }`}
+                                        >
+                                            No
+                                        </button>
+                                    </div>
+
+                                    {hasMvp && (
+                                        <div className="space-y-6 animate-in fade-in slide-in-from-top-2 p-4 bg-zinc-900/30 rounded-lg border border-zinc-800">
+
+                                            <div>
+                                                <Label>What type of MVP is it? <span className="text-red-500">*</span></Label>
+                                                <Select
+                                                    value={mvpType}
+                                                    onChange={(val) => setMvpType(val)}
+                                                    options={['digital', 'physical']}
+                                                    placeholder="Select MVP Type"
+                                                />
+                                            </div>
+
+                                            {mvpType === 'digital' && (
+                                                <div>
+                                                    <Label>MVP URL <span className="text-red-500">*</span></Label>
+                                                    <Input
+                                                        value={mvpUrl}
+                                                        onChange={(e: any) => setMvpUrl(e.target.value)}
+                                                        placeholder="https://example.com/demo"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {mvpType === 'physical' && (
+                                                <div className="space-y-4">
+                                                    <div>
+                                                        <Label>Product Image <span className="text-red-500">*</span></Label>
+                                                        <div className="flex items-center gap-3">
+                                                            <input
+                                                                type="file"
+                                                                onChange={(e) => e.target.files && setMvpImage(e.target.files[0])}
+                                                                accept="image/*"
+                                                                className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-zinc-800 file:text-green-500 hover:file:bg-zinc-700 cursor-pointer"
+                                                            />
+                                                            {mvpImage && <CheckCircleIconSolid className="w-6 h-6 text-green-500" />}
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <Label>Product Video <span className="text-red-500">*</span></Label>
+                                                        <div className="flex items-center gap-3">
+                                                            <input
+                                                                type="file"
+                                                                onChange={(e) => e.target.files && setMvpVideo(e.target.files[0])}
+                                                                accept="video/*"
+                                                                className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-zinc-800 file:text-green-500 hover:file:bg-zinc-700 cursor-pointer"
+                                                            />
+                                                            {mvpVideo && <CheckCircleIconSolid className="w-6 h-6 text-green-500" />}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                <div>
+                                    <Label>Asking Price ($) <span className="text-red-500">*</span></Label>
+                                    <Input type="number" value={price} onChange={(e: any) => setPrice(e.target.value)} placeholder="e.g. 5000" />
+                                </div>
+                            </div>
+                        )}
+
+                    </div>
+
+                    {/* Footer Nav */}
+                    <div className="mt-12 pt-6 border-t border-zinc-800 flex justify-between items-center">
+                        <button onClick={handleBack} disabled={currentStep === 1} className={`flex items-center gap-2 text-sm font-medium ${currentStep === 1 ? 'text-zinc-700 cursor-not-allowed' : 'text-zinc-400 hover:text-white'}`}>
+                            <ChevronLeftIcon className="w-4 h-4" /> Back
                         </button>
-                    ) : (
-                        <button onClick={handleSubmit} disabled={isSubmitting || !isStepValid} className={`flex items-center gap-2 bg-[#22C55E] text-black px-8 py-2.5 rounded-lg text-sm font-bold hover:bg-green-400 transition-all ${(!isStepValid || isSubmitting) ? 'opacity-50 cursor-not-allowed' : 'shadow-[0_0_20px_rgba(34,197,94,0.3)]'}`}>
-                            {isSubmitting ? 'Publishing...' : 'Publish Listing'} <CheckCircleIconSolid className="w-4 h-4" />
-                        </button>
-                    )}
+
+                        {currentStep < TOTAL_STEPS ? (
+                            <button onClick={handleNext} disabled={!isStepValid} className={`flex items-center gap-2 bg-[#22C55E] text-black px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-green-400 transition-all ${!isStepValid ? 'opacity-50 cursor-not-allowed' : 'shadow-[0_0_20px_rgba(34,197,94,0.3)]'}`}>
+                                Next Step <ChevronRightIcon className="w-4 h-4" />
+                            </button>
+                        ) : (
+                            <button onClick={handleSubmit} disabled={isSubmitting || !isStepValid} className={`flex items-center gap-2 bg-[#22C55E] text-black px-8 py-2.5 rounded-lg text-sm font-bold hover:bg-green-400 transition-all ${(!isStepValid || isSubmitting) ? 'opacity-50 cursor-not-allowed' : 'shadow-[0_0_20px_rgba(34,197,94,0.3)]'}`}>
+                                {isSubmitting ? 'Publishing...' : 'Publish Listing'} <CheckCircleIconSolid className="w-4 h-4" />
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 
