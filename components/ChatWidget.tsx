@@ -33,24 +33,40 @@ export const ChatWidget: React.FC = () => {
     const [newMessage, setNewMessage] = useState('');
     const [sending, setSending] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    // Track locally read messages to handle DB latency (Optimistic UI)
+    const lastReadMessageIds = useRef<Record<string, string>>({});
 
     const fetchMessages = React.useCallback(async (silent: boolean = false) => {
         if (!user) return;
         if (!silent) setLoading(true);
         const { conversations: data } = await ChatService.fetchConversations(user.id);
 
-        // If we are looking at a thread, ensure it shows as read locally AND mark read on server if needed
         if (view === 'thread' && activeThreadId) {
             const activeConvo = data.find(c => c.other_user_id === activeThreadId);
-            if (activeConvo && activeConvo.unread_count > 0) {
-                // Mark as read on server because we are viewing it right now
-                ChatService.markThreadRead(user.id, activeThreadId);
-                // Override local display
-                activeConvo.unread_count = 0;
+            if (activeConvo) {
+                // 1. Mark as read on server (Idempotent)
+                if (activeConvo.unread_count > 0) {
+                    ChatService.markThreadRead(user.id, activeThreadId);
+                }
+                // 2. Track that we have read the latest message in this thread
+                const lastMsg = activeConvo.last_message;
+                if (lastMsg) {
+                    lastReadMessageIds.current[activeThreadId] = lastMsg.id;
+                }
             }
         }
 
-        setConversations(data);
+        // Apply local read state to fetched data
+        // If the latest message ID matches what we've already seen, force unread to 0
+        const processedData = data.map(c => {
+            const lastReadId = lastReadMessageIds.current[c.other_user_id];
+            if (lastReadId === c.last_message.id) {
+                return { ...c, unread_count: 0 };
+            }
+            return c;
+        });
+
+        setConversations(processedData);
         if (!silent) setLoading(false);
     }, [user, view, activeThreadId]);
 
@@ -193,6 +209,11 @@ export const ChatWidget: React.FC = () => {
             // Only update if there are unread messages to clear, avoiding infinite loop
             if (currentConvo && currentConvo.unread_count > 0) {
                 ChatService.markThreadRead(user.id, activeThreadId);
+                // Optimistically update local state as well
+                const lastMsg = currentConvo.last_message;
+                if (lastMsg) {
+                    lastReadMessageIds.current[activeThreadId] = lastMsg.id;
+                }
                 setConversations(prev => prev.map(c =>
                     c.other_user_id === activeThreadId
                         ? { ...c, unread_count: 0 }
