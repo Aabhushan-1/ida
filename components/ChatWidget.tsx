@@ -34,6 +34,30 @@ export const ChatWidget: React.FC = () => {
     const [sending, setSending] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    const fetchMessages = React.useCallback(async (silent: boolean = false) => {
+        if (!user) return;
+        if (!silent) setLoading(true);
+        const { conversations: data } = await ChatService.fetchConversations(user.id);
+
+        // If we are looking at a thread, ensure it shows as read locally AND mark read on server if needed
+        if (view === 'thread' && activeThreadId) {
+            const activeConvo = data.find(c => c.other_user_id === activeThreadId);
+            if (activeConvo && activeConvo.unread_count > 0) {
+                // Mark as read on server because we are viewing it right now
+                ChatService.markThreadRead(user.id, activeThreadId);
+                // Override local display
+                activeConvo.unread_count = 0;
+            }
+        }
+
+        setConversations(data);
+        if (!silent) setLoading(false);
+    }, [user, view, activeThreadId]);
+
+    const handleIncomingMessage = async (msg: Message) => {
+        await fetchMessages(true); // Silent refresh
+    };
+
     // Auto-scroll to bottom of thread
     useEffect(() => {
         if (view === 'thread' && messagesEndRef.current) {
@@ -150,7 +174,7 @@ export const ChatWidget: React.FC = () => {
         return () => {
             supabase.removeChannel(subscription);
         };
-    }, [user]);
+    }, [user]); // fetchMessages is stable or refactored below
 
     // Polling Backup: Refresh every 1 second
     useEffect(() => {
@@ -159,7 +183,7 @@ export const ChatWidget: React.FC = () => {
             fetchMessages(true); // true = silent refresh (no loading spinner)
         }, 1000);
         return () => clearInterval(interval);
-    }, [user, isOpen]);
+    }, [user, isOpen, fetchMessages]);
 
     // Mark as read when opening a thread
     useEffect(() => {
@@ -178,17 +202,7 @@ export const ChatWidget: React.FC = () => {
         }
     }, [view, activeThreadId, conversations]);
 
-    const fetchMessages = async (silent: boolean = false) => {
-        if (!user) return;
-        if (!silent) setLoading(true);
-        const { conversations: data } = await ChatService.fetchConversations(user.id);
-        setConversations(data);
-        if (!silent) setLoading(false);
-    };
 
-    const handleIncomingMessage = async (msg: Message) => {
-        await fetchMessages();
-    };
 
     const handleSend = async (e: React.FormEvent | React.KeyboardEvent) => {
         e.preventDefault();
