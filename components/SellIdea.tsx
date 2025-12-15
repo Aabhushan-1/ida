@@ -280,30 +280,30 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
     };
 
     // --- Validation ---
-    const isListValid = (list: string[]) => list.length > 0 && list.some(item => item.trim().length > 0);
+    const isListValid = (list: string[]) => list.length > 0 && list.some(item => item.length > 0);
     const industryOptions = [...INDUSTRIES];
 
     const isStepValid = useMemo(() => {
         switch (currentStep) {
             case 1: // Info
-                return title.trim().length > 0 &&
-                    shortDescription.trim().length > 0 &&
+                return title.length > 0 &&
+                    shortDescription.length > 0 &&
                     primaryCategory !== '' &&
                     secondaryCategory !== '';
             case 2: // Customer Pain
-                return painWho.trim() !== '' && isListValid(painProblem) && painFrequency.trim() !== '';
+                return painWho.length > 0 && isListValid(painProblem) && painFrequency.length > 0;
             case 3: // Current Solutions
-                return isListValid(solutionCurrent) && isListValid(solutionInsufficient) && solutionRisks.trim() !== '';
+                return isListValid(solutionCurrent) && isListValid(solutionInsufficient) && solutionRisks.length > 0;
             case 4: // Execution Steps
-                return isListValid(execSteps) && isListValid(execSkills) && execRisks.trim() !== '';
+                return isListValid(execSteps) && isListValid(execSkills) && execRisks.length > 0;
             case 5: // Growth Plan
-                return isListValid(growthAcquisition) && growthDrivers.trim() !== '' && isListValid(growthExpansion);
+                return isListValid(growthAcquisition) && growthDrivers.length > 0 && isListValid(growthExpansion);
             case 6: // Solution Details
-                return solWhat.trim() !== '' && solHow.trim() !== '' && solWhyBetter.trim() !== '';
+                return solWhat.length > 0 && solHow.length > 0 && solWhyBetter.length > 0;
             case 7: // Revenue Plan
-                return revWhoPays.trim() !== '' && revFlow.trim() !== '' && revRetention.trim() !== '';
+                return revWhoPays.length > 0 && revFlow.length > 0 && revRetention.length > 0;
             case 8: // Impact
-                return impactWho.trim() !== '' && impactImprovement.trim() !== '' && impactScale.trim() !== '';
+                return impactWho.length > 0 && impactImprovement.length > 0 && impactScale.length > 0;
             case 9: // Docs & Price
                 const hasDoc = (mainDocument !== null || existingMainDocUrl !== null);
                 const validPrice = !isNaN(parseFloat(price)) && parseFloat(price) > 0;
@@ -316,7 +316,7 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                 if (hasMvp === null) return false;
                 if (hasMvp) {
                     if (mvpType === 'digital') {
-                        if (!mvpUrl.trim()) return false;
+                        if (mvpUrl.length === 0) return false;
                     } else if (mvpType === 'physical') {
                         // For physical, we need image AND video. 
                         // Note: If editing, we might not have them in state if loadListingData didn't load them.
