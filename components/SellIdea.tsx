@@ -194,6 +194,8 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
     const [mvpUrl, setMvpUrl] = useState('');
     const [mvpImage, setMvpImage] = useState<File | null>(null);
     const [mvpVideo, setMvpVideo] = useState<File | null>(null);
+    const [existingMvpImageUrl, setExistingMvpImageUrl] = useState<string | null>(null);
+    const [existingMvpVideoUrl, setExistingMvpVideoUrl] = useState<string | null>(null);
 
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
@@ -271,6 +273,26 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
             const extraDocs = [data.additional_doc_1, data.additional_doc_2, data.additional_doc_3].filter(Boolean) as string[];
             setExistingAdditionalDocs(extraDocs);
 
+            // Populate Additional Docs Toggle
+            if (extraDocs.length > 0) {
+                setHasAdditionalDocs(true);
+            } else {
+                // Explicitly set to false if no docs, or keep null? 
+                // If we have data (even if empty), we can say "No".
+                setHasAdditionalDocs(false);
+            }
+
+            // Populate MVP Toggle
+            if (data.mvp_type) {
+                setHasMvp(true);
+                setMvpType(data.mvp_type as any);
+                setMvpUrl(data.mvp_url || '');
+                setExistingMvpImageUrl(data.mvp_image_url || null);
+                setExistingMvpVideoUrl(data.mvp_video_url || null);
+            } else {
+                setHasMvp(false);
+            }
+
         } catch (err) {
             console.error('Failed to load listing', err);
             alert('Failed to load listing for editing.');
@@ -324,8 +346,8 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                         // Ideally we check if (mvpImage || existingMvpImage) && (mvpVideo || existingMvpVideo).
                         // Since I don't have existingMvp vars, I will just check current files for now. 
                         // WARN: This might block editing if not re-uploaded.
-                        if (!mvpImage) return false;
-                        if (!mvpVideo) return false;
+                        if (!mvpImage && !existingMvpImageUrl) return false;
+                        if (!mvpVideo && !existingMvpVideoUrl) return false;
                     }
                 }
 
@@ -722,8 +744,19 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                                     <Label>Prospectus / Business Plan (PDF) <span className="text-red-500">*</span></Label>
                                     {(mainDocument || existingMainDocUrl) ? (
                                         <div className="flex items-center justify-between bg-zinc-800 p-4 rounded-lg border border-zinc-700">
-                                            <span className="text-zinc-200 text-sm truncate">{mainDocument?.name || 'Existing Document'}</span>
-                                            <button onClick={() => { setMainDocument(null); setExistingMainDocUrl(null); }} className="text-red-400"><XMarkIcon className="w-5 h-5" /></button>
+                                            {mainDocument ? (
+                                                <span className="text-zinc-200 text-sm truncate">{mainDocument.name}</span>
+                                            ) : (
+                                                <a
+                                                    href={existingMainDocUrl!}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-zinc-200 text-sm truncate hover:text-[#22C55E] hover:underline transition-colors"
+                                                >
+                                                    {existingMainDocUrl ? decodeURIComponent(existingMainDocUrl.split('/').pop() || 'View Document') : 'View Document'}
+                                                </a>
+                                            )}
+                                            <button onClick={() => { setMainDocument(null); setExistingMainDocUrl(null); }} className="text-red-400 hover:text-red-300 transition-colors"><XMarkIcon className="w-5 h-5" /></button>
                                         </div>
                                     ) : (
                                         <input type="file" onChange={handleMainDocUpload} accept=".pdf" className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-zinc-800 file:text-green-500 hover:file:bg-zinc-700" />
@@ -860,26 +893,50 @@ export const SellIdea: React.FC<SellIdeaProps> = ({ onBack }) => {
                                                     <div>
                                                         <Label>Product Image <span className="text-red-500">*</span></Label>
                                                         <div className="flex items-center gap-3">
-                                                            <input
-                                                                type="file"
-                                                                onChange={(e) => e.target.files && setMvpImage(e.target.files[0])}
-                                                                accept="image/*"
-                                                                className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-zinc-800 file:text-green-500 hover:file:bg-zinc-700 cursor-pointer"
-                                                            />
-                                                            {mvpImage && <CheckCircleIconSolid className="w-6 h-6 text-green-500" />}
+                                                            {existingMvpImageUrl && !mvpImage ? (
+                                                                <div className="flex items-center justify-between w-full bg-zinc-800 p-3 rounded-lg border border-zinc-700">
+                                                                    <div className="flex items-center gap-2 overflow-hidden">
+                                                                        <span className="px-2 py-0.5 rounded text-[10px] bg-zinc-700 text-zinc-300 font-mono uppercase">Existing</span>
+                                                                        <a href={existingMvpImageUrl} target="_blank" rel="noopener noreferrer" className="text-zinc-200 text-sm truncate hover:underline text-green-400">View Image</a>
+                                                                    </div>
+                                                                    <button onClick={() => setExistingMvpImageUrl(null)} className="text-red-400 hover:text-red-300 p-1"><XMarkIcon className="w-4 h-4" /></button>
+                                                                </div>
+                                                            ) : (
+                                                                <>
+                                                                    <input
+                                                                        type="file"
+                                                                        onChange={(e) => e.target.files && setMvpImage(e.target.files[0])}
+                                                                        accept="image/*"
+                                                                        className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-zinc-800 file:text-green-500 hover:file:bg-zinc-700 cursor-pointer"
+                                                                    />
+                                                                    {mvpImage && <CheckCircleIconSolid className="w-6 h-6 text-green-500" />}
+                                                                </>
+                                                            )}
                                                         </div>
                                                     </div>
 
                                                     <div>
                                                         <Label>Product Video <span className="text-red-500">*</span></Label>
                                                         <div className="flex items-center gap-3">
-                                                            <input
-                                                                type="file"
-                                                                onChange={(e) => e.target.files && setMvpVideo(e.target.files[0])}
-                                                                accept="video/*"
-                                                                className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-zinc-800 file:text-green-500 hover:file:bg-zinc-700 cursor-pointer"
-                                                            />
-                                                            {mvpVideo && <CheckCircleIconSolid className="w-6 h-6 text-green-500" />}
+                                                            {existingMvpVideoUrl && !mvpVideo ? (
+                                                                <div className="flex items-center justify-between w-full bg-zinc-800 p-3 rounded-lg border border-zinc-700">
+                                                                    <div className="flex items-center gap-2 overflow-hidden">
+                                                                        <span className="px-2 py-0.5 rounded text-[10px] bg-zinc-700 text-zinc-300 font-mono uppercase">Existing</span>
+                                                                        <a href={existingMvpVideoUrl} target="_blank" rel="noopener noreferrer" className="text-zinc-200 text-sm truncate hover:underline text-green-400">View Video</a>
+                                                                    </div>
+                                                                    <button onClick={() => setExistingMvpVideoUrl(null)} className="text-red-400 hover:text-red-300 p-1"><XMarkIcon className="w-4 h-4" /></button>
+                                                                </div>
+                                                            ) : (
+                                                                <>
+                                                                    <input
+                                                                        type="file"
+                                                                        onChange={(e) => e.target.files && setMvpVideo(e.target.files[0])}
+                                                                        accept="video/*"
+                                                                        className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-zinc-800 file:text-green-500 hover:file:bg-zinc-700 cursor-pointer"
+                                                                    />
+                                                                    {mvpVideo && <CheckCircleIconSolid className="w-6 h-6 text-green-500" />}
+                                                                </>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
