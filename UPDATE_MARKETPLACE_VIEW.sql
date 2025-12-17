@@ -4,6 +4,7 @@
 -- 1. Updates 'marketplace' view to use LEFT JOINs (shows listings even if scoring pending)
 -- 2. Updates 'idea_detail_page' view to use LEFT JOINs and include ALL granular columns
 --    so that the Edit form and Details page work correctly.
+-- 3. Fixes UUID casting issues by explicitly casting to text.
 -- ==============================================================================
 
 -- Drop existing views
@@ -17,7 +18,7 @@ CREATE OR REPLACE VIEW marketplace AS
 SELECT 
     gen_random_uuid() AS marketplace_id,
     il.idea_id,
-    COALESCE(ai.ai_score_id, 'pending') AS ai_score_id,
+    COALESCE(ai.ai_score_id::text, 'pending') AS ai_score_id,
     il.title,
     COALESCE(il.one_line_description, '') AS description,
     
@@ -64,7 +65,7 @@ SELECT
     gen_random_uuid() AS idea_detail_id, -- Matches Type definition (optional unique id)
     il.idea_id,
     il.user_id,                          -- Needed for RLS checks/Edit permission
-    COALESCE(ai.ai_score_id, 'pending') AS ai_score_id,
+    COALESCE(ai.ai_score_id::text, 'pending') AS ai_score_id,
     il.title,
     COALESCE(il.one_line_description, '') AS description, -- Mapped to 'description'
     il.one_line_description,             -- Full field
